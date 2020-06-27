@@ -1,6 +1,10 @@
 import os
 import time
 import datetime
+import csv
+
+ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
+BOOKMARK_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'my_bookmark.csv')
 
 
 def login_narou(driver, email, password):
@@ -16,6 +20,23 @@ def login_narou(driver, email, password):
     pass_elem.send_keys(password)
 
     driver.find_element_by_css_selector('#mainsubmit').click()
+
+
+def load_bookmark_csv():
+    bookmarks = []
+
+    if not os.path.exists(BOOKMARK_CSV_PATH):
+        return bookmarks
+
+    with open(BOOKMARK_CSV_PATH, 'r', encoding='utf-8') as f:
+        for row in csv.reader(f):
+            bookmarks.append({
+                'category': row[0],
+                'ncode': row[1],
+                'title': row[2],
+            })
+
+    return bookmarks
 
 
 class NarouPageCrawler:

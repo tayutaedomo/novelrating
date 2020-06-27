@@ -3,6 +3,21 @@ import time
 import datetime
 
 
+def login_narou(driver, email, password):
+    url = 'https://ssl.syosetu.com/login/input/'
+    print(datetime.datetime.now().isoformat(), 'GET:', url)
+
+    driver.get(url)
+
+    id_elem = driver.find_element_by_css_selector('input[name="narouid"]')
+    id_elem.send_keys(email)
+
+    pass_elem = driver.find_element_by_css_selector('input[name="pass"]')
+    pass_elem.send_keys(password)
+
+    driver.find_element_by_css_selector('#mainsubmit').click()
+
+
 class NarouPageCrawler:
     def __init__(self, driver, dest_root_path, sleep=3):
         self.driver = driver

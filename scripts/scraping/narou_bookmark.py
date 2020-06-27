@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 import time
 import datetime
@@ -7,22 +8,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-CSV_PATH = os.path.join(ROOT_PATH, 'data', 'bookmark.csv')
+CSV_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'my_bookmark.csv')
 
+sys.path.append(ROOT_PATH)
 
-def login(driver ,email, password):
-    url = 'https://ssl.syosetu.com/login/input/'
-    print(datetime.datetime.now().isoformat(), 'GET:', url)
-
-    driver.get(url)
-
-    id_elem = driver.find_element_by_css_selector('input[name="narouid"]')
-    id_elem.send_keys(email)
-
-    pass_elem = driver.find_element_by_css_selector('input[name="pass"]')
-    pass_elem.send_keys(password)
-
-    driver.find_element_by_css_selector('#mainsubmit').click()
+from scripts.utils.novel import login_narou
 
 
 def get_bookmarks_all(driver):
@@ -100,7 +90,7 @@ if __name__ == '__main__':
     options.add_argument('--incognito')
     driver = webdriver.Chrome(options=options)
 
-    login(driver, email, password)
+    login_narou(driver, email, password)
 
     bookmarks = get_bookmarks_all(driver)
 

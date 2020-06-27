@@ -48,16 +48,16 @@ class NarouPageCrawler:
     def crawl(self, ncode, page_start, page_end):
         for page in range(page_start, page_end + 1):
             if self.is_txt_presents(ncode, page):
-                print(datetime.datetime.now().isoformat(), 'Skip:', ncode, page)
+                print(datetime.datetime.now().isoformat(), ncode, page, 'Skip')
                 continue
 
             novel = self.get_novel(ncode, page)
 
             if not novel['downloaded']:
-                print(datetime.datetime.now().isoformat(), 'Failed:', ncode, page)
+                print(datetime.datetime.now().isoformat(), ncode, page, 'Failed')
             else:
                 if self.write_novel_to_txt(ncode, page, novel):
-                    print(datetime.datetime.now().isoformat(), 'New:', ncode, page)
+                    print(datetime.datetime.now().isoformat(), ncode, page, 'New')
 
             if page < page_end:
                 print(datetime.datetime.now().isoformat(), 'Sleep({})'.format(self.sleep))
@@ -102,6 +102,8 @@ class NarouPageCrawler:
         #     print(datetime.datetime.now().isoformat(), 'Skip:', ncode, page)
         #     return False
 
+        self.create_ncode_dir(ncode)
+
         lines = [
             novel['url'],
             repr(novel['title']),
@@ -120,10 +122,18 @@ class NarouPageCrawler:
         dest_path = self.create_txt_path(ncode, page)
         return os.path.exists(dest_path)
 
+    def create_dir_path(self, ncode):
+        return os.path.join(self.dest_root_path, ncode)
+
     def create_txt_path(self, ncode, page):
+        dir_path = self.create_dir_path(ncode)
         file_name = self.create_txt_name(ncode, page)
-        return os.path.join(self.dest_root_path, file_name)
+        return os.path.join(dir_path, file_name)
 
     def create_txt_name(self, ncode, page):
         return '{}-p{}.txt'.format(ncode, page)
+
+    def create_ncode_dir(self, ncode):
+        dir_path = self.create_dir_path(ncode)
+        os.makedirs(dir_path, exist_ok=True)
 

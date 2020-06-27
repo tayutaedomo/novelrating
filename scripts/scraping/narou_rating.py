@@ -13,24 +13,7 @@ BOOKMARK_RATING_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'my_bookmark
 
 sys.path.append(ROOT_PATH)
 
-from scripts.utils.novel import login_narou
-
-
-def load_bookmark_csv():
-    bookmarks = []
-
-    if not os.path.exists(BOOKMARK_CSV_PATH):
-        return bookmarks
-
-    with open(BOOKMARK_CSV_PATH, 'r', encoding='utf-8') as f:
-        for row in csv.reader(f):
-            bookmarks.append({
-                'category': row[0],
-                'ncode': row[1],
-                'title': row[2],
-            })
-
-    return bookmarks
+from scripts.utils.novel import login_narou, load_bookmark_csv
 
 
 def create_cache():

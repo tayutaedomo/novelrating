@@ -10,19 +10,30 @@ DEST_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'narou')
 
 sys.path.append(ROOT_PATH)
 
-from scripts.utils.novel import NarouPageCrawler
+from scripts.utils.novel import NarouPageCrawler, load_bookmark_csv
 
 
 if __name__ == '__main__':
-    ncode_list = [
-        'n6316bn',
-        'n9669bk',
-        'n7855ck',
-    ]
-
     page_start = 1
     page_count = 30
     page_end = page_start + page_count - 1
+
+    ncode_list = []
+
+    if len(sys.argv) > 1:
+        import_code = sys.argv[1]
+
+    if import_code == 'bookmark':
+        bookmarks = load_bookmark_csv()
+        print(datetime.datetime.now().isoformat(), 'Bookmark Count:', len(bookmarks))
+        ncode_list = [bookmark['ncode'] for bookmark in bookmarks]
+
+    else:
+        ncode_list = [
+            'n6316bn',
+            'n9669bk',
+            'n7855ck',
+        ]
 
     options = Options()
     options.add_argument('--headless')
@@ -31,7 +42,8 @@ if __name__ == '__main__':
 
     crawler = NarouPageCrawler(driver, DEST_ROOT_PATH, 3)
 
-    print(datetime.datetime.now().isoformat(), 'ncode Count:', len(ncode_list), ', Page:', page_start, 'to', page_end)
+    print(datetime.datetime.now().isoformat(),
+          'Count:', len(ncode_list), ', Page:', page_start, 'to', page_end)
 
     for i, ncode in enumerate(ncode_list):
         crawler.crawl(ncode, page_start, page_end)

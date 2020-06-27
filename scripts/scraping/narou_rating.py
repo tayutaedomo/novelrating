@@ -69,7 +69,6 @@ def get_rating(driver, ncode):
         full_elem_list = driver.find_elements_by_css_selector('#novelpoint_form i.is-half')
         rating += len(full_elem_list) * 0.5
     except Exception as e:
-        print(e)
         pass
 
     return rating
@@ -104,7 +103,7 @@ if __name__ == '__main__':
 
     login_narou(driver, email, password)
 
-    for i, bookmark in enumerate(bookmarks[:50]):
+    for i, bookmark in enumerate(bookmarks):
         #ncode = 'n7951ei'  # No Rating
         #ncode = 'n6859du'  # is-half
         ncode = bookmark['ncode']

@@ -28,7 +28,7 @@ if __name__ == '__main__':
         print(datetime.datetime.now().isoformat(), 'Bookmark Count:', len(bookmarks))
         ncode_list = [bookmark['ncode'] for bookmark in bookmarks]
 
-    elif mode == '':
+    elif mode == 'ranking':
         novels = load_ranking_csv()
         print(datetime.datetime.now().isoformat(), 'Ranking Count:', len(novels))
         ncode_list = [novel['ncode'] for novel in novels]

@@ -1,6 +1,7 @@
 import os
 import time
 import datetime
+import re
 import csv
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
@@ -131,9 +132,108 @@ class NarouPageCrawler:
         return os.path.join(dir_path, file_name)
 
     def create_txt_name(self, ncode, page):
-        return '{}-p{}.txt'.format(ncode, page)
+        return '{}_p{}.txt'.format(ncode, page)
 
     def create_ncode_dir(self, ncode):
         dir_path = self.create_dir_path(ncode)
         os.makedirs(dir_path, exist_ok=True)
+
+
+class NarouRanking:
+    def __init__(self, driver, limit=100):
+        self.driver = driver
+        self.limit = limit
+
+    def get_list(self, ranking_path):
+        novels = []
+
+        base_url = 'https://yomou.syosetu.com/rank/{}'
+        url = base_url.format(ranking_path)
+        print(datetime.datetime.now().isoformat(), 'GET:', url)
+
+        self.driver.get(url)
+
+        ranking_elem_list = self.driver.find_elements_by_css_selector('div.ranking_list')
+
+        for i, ranking_elem in enumerate(ranking_elem_list[:self.limit]):
+            ranking = {
+                'rank': i + 1,
+                'ranking_path': ranking_path,
+                'ncode': self.extract_ncode(ranking_elem),
+                'title': self.extract_title(ranking_elem),
+                'author': self.extract_author_id(ranking_elem),
+                'pt': self.extract_point(ranking_elem),
+                'page': self.extract_page(ranking_elem),
+                'category': self.extract_category(ranking_elem),
+                'keywords': self.extract_keywords(ranking_elem),
+                'updated_at': self.extract_last_updated_at(ranking_elem),
+                'word': self.extract_word_count(ranking_elem)
+            }
+            novels.append(ranking)
+
+        return novels
+
+    def extract_ncode(self, parent_elem):
+        title_elem = parent_elem.find_element_by_css_selector('div.rank_h a')
+        return self.extract_ncode_from_url(title_elem.get_attribute('href'))
+
+    def extract_ncode_from_url(self, url):
+        matched = re.match(r'^https:\/\/ncode\.syosetu\.com\/(.+)\/$', url)
+        if matched:
+            return matched.group(1)
+        else:
+            return ''
+
+    def extract_title(self, parent_elem):
+        title_elem = parent_elem.find_element_by_css_selector('div.rank_h a')
+        return title_elem.text
+
+    def extract_author_id(self, parent_elem):
+        elem_list = parent_elem.find_elements_by_css_selector('td.h_info a')
+        author_elem = elem_list[-1]
+        return self.extract_author_id_from_url(author_elem.get_attribute('href'))
+
+    def extract_author_id_from_url(self, url):
+        matched = re.match(r'^https:\/\/mypage.syosetu.com\/(.+)\/$', url)
+        if matched:
+            return matched.group(1)
+        else:
+            return ''
+
+    def extract_point(self, parent_elem):
+        return parent_elem.find_element_by_css_selector('span.point').text
+
+    def extract_page(self, parent_elem):
+        td_elem = parent_elem.find_element_by_css_selector('td.left')
+        point = self.extract_point(parent_elem)
+        return td_elem.text.replace(point, '').replace('\n', '').strip()
+
+    def extract_category(self, parent_elem):
+        elem_list = parent_elem.find_elements_by_css_selector('tr')
+        category_elem = elem_list[2]
+        return category_elem.text
+
+    def extract_keywords(self, parent_elem):
+        keywords = []
+
+        try:
+            pass
+            a_elem_list = parent_elem.find_elements_by_css_selector('td.keyword a')
+            keywords = [elem.text for elem in a_elem_list]
+        except Exception:
+            pass
+
+        return ' '.join(keywords)
+
+    def extract_last_updated_at(self, parent_elem):
+        elem_list = parent_elem.find_elements_by_css_selector('tr')
+        last_elem = elem_list[-1]
+        word_count = self.extract_word_count(parent_elem)
+        return last_elem.text.replace(word_count, '').replace('最終更新日：', '').strip()
+
+    def extract_word_count(self, parent_elem):
+        elem_list = parent_elem.find_elements_by_css_selector('tr')
+        last_elem = elem_list[-1]
+        count_elem = last_elem.find_element_by_css_selector('span')
+        return count_elem.text
 

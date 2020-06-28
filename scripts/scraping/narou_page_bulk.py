@@ -34,6 +34,10 @@ if __name__ == '__main__':
         ncode_list = [novel['ncode'] for novel in novels]
         ncode_list = ncode_list[:2]
 
+    elif mode == 'ncode':
+        ncode = sys.argv[2]
+        ncode_list.append(ncode)
+
     else:
         ncode_list = [
             'n6316bn',

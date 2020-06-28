@@ -145,7 +145,7 @@ class NarouRanking:
         self.limit = limit
 
     def get_list(self, ranking_path):
-        ranking_list = []
+        novels = []
 
         base_url = 'https://yomou.syosetu.com/rank/{}'
         url = base_url.format(ranking_path)
@@ -169,9 +169,9 @@ class NarouRanking:
                 'updated_at': self.extract_last_updated_at(ranking_elem),
                 'word': self.extract_word_count(ranking_elem)
             }
-            ranking_list.append(ranking)
+            novels.append(ranking)
 
-        return ranking_list
+        return novels
 
     def extract_ncode(self, parent_elem):
         title_elem = parent_elem.find_element_by_css_selector('div.rank_h a')

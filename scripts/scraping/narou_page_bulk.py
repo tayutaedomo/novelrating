@@ -10,7 +10,7 @@ DEST_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'narou')
 
 sys.path.append(ROOT_PATH)
 
-from scripts.utils.novel import NarouPageCrawler, load_bookmark_csv
+from scripts.utils.novel import NarouPageCrawler, load_bookmark_csv, load_ranking_csv
 
 
 if __name__ == '__main__':
@@ -21,12 +21,22 @@ if __name__ == '__main__':
     ncode_list = []
 
     if len(sys.argv) > 1:
-        import_code = sys.argv[1]
+        mode = sys.argv[1]
 
-    if import_code == 'bookmark':
+    if mode == 'bookmark':
         bookmarks = load_bookmark_csv()
         print(datetime.datetime.now().isoformat(), 'Bookmark Count:', len(bookmarks))
         ncode_list = [bookmark['ncode'] for bookmark in bookmarks]
+
+    elif mode == 'ranking':
+        novels = load_ranking_csv()
+        print(datetime.datetime.now().isoformat(), 'Ranking Count:', len(novels))
+        ncode_list = [novel['ncode'] for novel in novels]
+        ncode_list = ncode_list[:2]
+
+    elif mode == 'ncode':
+        ncode = sys.argv[2]
+        ncode_list.append(ncode)
 
     else:
         ncode_list = [

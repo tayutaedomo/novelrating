@@ -6,6 +6,7 @@ import csv
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 BOOKMARK_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'my_bookmark.csv')
+RANKING_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'ranking.csv')
 
 
 def login_narou(driver, email, password):
@@ -38,6 +39,31 @@ def load_bookmark_csv():
             })
 
     return bookmarks
+
+
+def load_ranking_csv():
+    novels = []
+
+    if not os.path.exists(RANKING_CSV_PATH):
+        return novels
+
+    with open(RANKING_CSV_PATH, 'r', encoding='utf-8') as f:
+        for row in csv.reader(f):
+            novels.append({
+                'ncode': row[0],
+                'ranking_path': row[1],
+                'rank': row[2],
+                'author': row[3],
+                'updated_at': row[4],
+                'pt': row[5],
+                'page': row[6],
+                'word': row[7],
+                'category': row[8],
+                'keywords': row[9],
+                'title': row[10],
+            })
+
+    return novels
 
 
 class NarouPageCrawler:

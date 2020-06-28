@@ -131,7 +131,7 @@ class NarouPageCrawler:
         return os.path.join(dir_path, file_name)
 
     def create_txt_name(self, ncode, page):
-        return '{}-p{}.txt'.format(ncode, page)
+        return '{}_p{}.txt'.format(ncode, page)
 
     def create_ncode_dir(self, ncode):
         dir_path = self.create_dir_path(ncode)

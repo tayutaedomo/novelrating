@@ -379,9 +379,6 @@ class NovelPage:
             self.page_title = f.readline().replace('\n', '')
             self.page_body = f.read()
 
-            # print(self.url, self.novel_title, self.page_title)
-            # print(self.page_body[:100])
-
         self.loaded = True
 
     def get_char_count(self):
@@ -398,11 +395,6 @@ class NovelPage:
         lines = []
 
         for line in self.get_split_body_lines():
-            # pos_1 = line.find('「')
-            # pos_2 = line.find('『')
-            # if pos_1 != -1 or pos_2 != -1:
-            #     print(pos_1, pos_2, line)
-
             line = line.replace('『', '')
             line = line.replace('』', '')
             line = line.replace(r'\u3000', '')
@@ -434,7 +426,6 @@ class NovelPage:
         for row in parsed.split('\n')[:-2]:  # Exclude EOS
             cols = row.split('\t')
             word_class = cols[3]
-            #print(word_class)
 
             if summary.get(word_class):
                 summary[word_class] += 1

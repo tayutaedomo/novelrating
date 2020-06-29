@@ -2,7 +2,6 @@ import os
 import sys
 import glob
 import datetime
-import pprint as pp
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 
@@ -33,24 +32,6 @@ if __name__ == '__main__':
 
     else:
         ncode_list.append('n0022gd')
-
-    # import pprint as pp
-    # page = NovelPage()
-    # page.load(ncode, 1)
-    #
-    # print(page.get_char_count())
-    # print(page.get_new_line_count())
-    # print(page.get_talk_char_count())
-    # print(page.get_word_count())
-    # pp.pprint(page.get_word_classes())
-
-    # pages = NovelPages()
-    # pages.load(ncode)
-    # # summary = pages.get_summary()
-    # # pp.pprint(summary)
-    # pages.save()
-
-    #pp.pprint(ncode_list)
 
     print(datetime.datetime.now().isoformat(), 'Count:', len(ncode_list))
 

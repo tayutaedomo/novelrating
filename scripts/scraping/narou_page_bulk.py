@@ -6,11 +6,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-DEST_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'narou')
 
 sys.path.append(ROOT_PATH)
 
 from scripts.utils.novel import NarouPageCrawler, load_bookmark_csv, load_ranking_csv
+from scripts.utils.novel import NOVELS_ROOT_PATH
 
 
 if __name__ == '__main__':
@@ -18,6 +18,7 @@ if __name__ == '__main__':
     page_count = 30
     page_end = page_start + page_count - 1
 
+    mode = None
     ncode_list = []
 
     if len(sys.argv) > 1:
@@ -32,7 +33,6 @@ if __name__ == '__main__':
         novels = load_ranking_csv()
         print(datetime.datetime.now().isoformat(), 'Ranking Count:', len(novels))
         ncode_list = [novel['ncode'] for novel in novels]
-        ncode_list = ncode_list[:2]
 
     elif mode == 'ncode':
         ncode = sys.argv[2]
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     options.add_argument('--incognito')
     driver = webdriver.Chrome(options=options)
 
-    crawler = NarouPageCrawler(driver, DEST_ROOT_PATH, 3)
+    crawler = NarouPageCrawler(driver, NOVELS_ROOT_PATH, 3)
 
     print(datetime.datetime.now().isoformat(),
           'Count:', len(ncode_list), ', Page:', page_start, 'to', page_end)

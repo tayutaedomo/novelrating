@@ -3,10 +3,17 @@ import time
 import datetime
 import re
 import csv
+import copy
+import json
+
+from .mecab import chasen
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-BOOKMARK_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'my_bookmark.csv')
-RANKING_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'ranking.csv')
+NOVELS_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'novels')
+NOVELS_BAK_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'novels.bak')
+BOOKMARK_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'bookmark.csv')
+BOOKMARK_RATING_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'bookmark_rating.csv')
+RANKING_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'ranking.csv')
 
 
 def login_narou(driver, email, password):
@@ -262,4 +269,171 @@ class NarouRanking:
         last_elem = elem_list[-1]
         count_elem = last_elem.find_element_by_css_selector('span')
         return count_elem.text
+
+
+class NovelPages:
+    def __init__(self, page_count=30):
+        self.page_count = page_count
+        self.ncode = None
+        self.pages = []
+
+    def exist_json(self, ncode):
+        json_path = self.create_json_path(ncode)
+        return os.path.exists(json_path)
+
+    def load(self, ncode):
+        self.ncode = ncode
+
+        for page_num in range(1, self.page_count+1):
+            page = NovelPage()
+            page.load(ncode, page_num)
+
+            if page.loaded:
+                self.pages.append(page)
+
+    def get_summary(self):
+        summary = {
+            'count': 0,
+            'sum': {
+                'char_count': 0,
+                'new_line_count': 0,
+                'talk_char_count': 0,
+                'word_count': 0,
+                'word_class': {},
+            },
+            # 'avg': {},
+        }
+
+        for page in self.pages:
+            summary['sum']['char_count'] += page.get_char_count()
+            summary['sum']['new_line_count'] += page.get_new_line_count()
+            summary['sum']['talk_char_count'] += page.get_talk_char_count()
+            summary['sum']['word_count'] += page.get_word_count()
+
+            word_classes = page.get_word_classes()
+            self.add_word_class_to(word_classes, summary['sum']['word_class'])
+
+        summary['count'] = len(self.pages)
+
+        if summary['count'] > 0:
+            summary['avg'] = copy.deepcopy(summary['sum'])
+
+            summary['avg']['char_count'] /= summary['count']
+            summary['avg']['new_line_count'] /= summary['count']
+            summary['avg']['talk_char_count'] /= summary['count']
+            summary['avg']['word_count'] /= summary['count']
+
+            for key in summary['avg']['word_class'].keys():
+                summary['avg']['word_class'][key] /= summary['count']
+
+        return summary
+
+    def add_word_class_to(self, src, dest):
+        for key, value in src.items():
+            if dest.get(key):
+                dest[key] += value
+            else:
+                dest[key] = value
+
+    def save(self):
+        if not self.ncode:
+            return None
+
+        dest_path = self.create_json_path(self.ncode)
+
+        with open(dest_path, 'w') as f:
+            json.dump(self.get_summary(), f, indent=2, ensure_ascii=False)
+
+        return dest_path
+
+    def create_json_path(self, ncode):
+        novel_dir_path = os.path.join(NOVELS_ROOT_PATH, ncode)
+        file_name = '{}_summary.json'.format(ncode)
+        return os.path.join(novel_dir_path, file_name)
+
+
+class NovelPage:
+    def __init__(self):
+        self.ncode = None
+        self.page_num = None
+        self.loaded = False
+        self.url = ''
+        self.novel_title = ''
+        self.page_title = ''
+        self.page_body = ''
+
+    def load(self, ncode, page_num):
+        self.ncode = ncode
+        self.page_num = page_num
+
+        novel_dir_path = os.path.join(NOVELS_ROOT_PATH, self.ncode)
+        page_file_name = '{}_p{}.txt'.format(self.ncode, 1)
+        page_file_path = os.path.join(novel_dir_path, page_file_name)
+
+        if not os.path.exists(page_file_path):
+            return
+
+        with open(page_file_path, 'r', encoding='utf-8') as f:
+            self.url = f.readline().replace('\n', '')
+            self.novel_title = f.readline().replace('\n', '')
+            self.page_title = f.readline().replace('\n', '')
+            self.page_body = f.read()
+
+        self.loaded = True
+
+    def get_char_count(self):
+        return len(self.page_body)
+
+    def get_new_line_count(self):
+        return self.page_body.count(r'\n')
+
+    def get_split_body_lines(self):
+        lines = self.page_body.split('\\n')
+        return [line for line in lines if line.strip() != '']
+
+    def get_talk_lines(self):
+        lines = []
+
+        for line in self.get_split_body_lines():
+            line = line.replace('『', '')
+            line = line.replace('』', '')
+            line = line.replace(r'\u3000', '')
+            line = re.sub(r'\s', '', line)
+            matched = re.match('(「)(.+?)(」)', line)
+            if matched:
+                lines.append(matched.groups()[1])
+
+        return lines
+
+    def get_talk_char_count(self):
+        return len(''.join(self.get_talk_lines()))
+
+    def get_normalized_body(self):
+        body = re.sub(r'(\\n|\\u3000)', '', self.page_body)
+        return body
+
+    def get_body_chasen(self):
+        return chasen(self.get_normalized_body())
+
+    def get_word_count(self):
+        parsed = self.get_body_chasen()
+        return len(parsed)
+
+    def get_chasen_word_classes(self):
+        summary = {}
+
+        parsed = self.get_body_chasen()
+        for row in parsed.split('\n')[:-2]:  # Exclude EOS
+            cols = row.split('\t')
+            word_class = cols[3]
+
+            if summary.get(word_class):
+                summary[word_class] += 1
+            else:
+                summary[word_class] = 1
+
+        return summary
+
+    def get_word_classes(self):
+        return self.get_chasen_word_classes()
 

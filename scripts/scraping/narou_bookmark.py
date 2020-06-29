@@ -8,11 +8,10 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-CSV_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'my_bookmark.csv')
 
 sys.path.append(ROOT_PATH)
 
-from scripts.utils.novel import login_narou
+from scripts.utils.novel import login_narou, BOOKMARK_CSV_PATH
 
 
 def get_bookmarks_all(driver):
@@ -70,7 +69,7 @@ def get_bookmarks(driver, category, page_num):
 def save_to_csv(bookmarks):
     print(datetime.datetime.now().isoformat(), 'Write, ', len(bookmarks))
 
-    with open(CSV_PATH, 'w') as f:
+    with open(BOOKMARK_CSV_PATH, 'w') as f:
         for bookmark in bookmarks:
             csv_line = '"{}","{}","{}"'.format(
                 bookmark.get('category'),

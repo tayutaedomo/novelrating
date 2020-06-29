@@ -6,11 +6,10 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-DEST_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'narou')
 
 sys.path.append(ROOT_PATH)
 
-from scripts.utils.novel import NarouPageCrawler
+from scripts.utils.novel import NarouPageCrawler, NOVELS_ROOT_PATH
 
 
 if __name__ == '__main__':
@@ -42,7 +41,7 @@ if __name__ == '__main__':
     options.add_argument('--incognito')
     driver = webdriver.Chrome(options=options)
 
-    crawler = NarouPageCrawler(driver, DEST_ROOT_PATH, 3)
+    crawler = NarouPageCrawler(driver, NOVELS_ROOT_PATH, 3)
     crawler.crawl(ncode, page_start, page_end)
 
     # Capture

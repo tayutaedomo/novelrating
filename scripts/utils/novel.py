@@ -273,9 +273,13 @@ class NarouRanking:
 
 class NovelPages:
     def __init__(self, page_count=30):
-        self.ncode = None
         self.page_count = page_count
+        self.ncode = None
         self.pages = []
+
+    def exist_json(self, ncode):
+        json_path = self.create_json_path(ncode)
+        return os.path.exists(json_path)
 
     def load(self, ncode):
         self.ncode = ncode
@@ -335,14 +339,17 @@ class NovelPages:
         if not self.ncode:
             return None
 
-        novel_dir_path = os.path.join(NOVELS_ROOT_PATH, self.ncode)
-        file_name = '{}_summary.json'.format(self.ncode)
-        dest_path = os.path.join(novel_dir_path, file_name)
+        dest_path = self.create_json_path(self.ncode)
 
         with open(dest_path, 'w') as f:
             json.dump(self.get_summary(), f, indent=2, ensure_ascii=False)
 
         return dest_path
+
+    def create_json_path(self, ncode):
+        novel_dir_path = os.path.join(NOVELS_ROOT_PATH, ncode)
+        file_name = '{}_summary.json'.format(ncode)
+        return os.path.join(novel_dir_path, file_name)
 
 
 class NovelPage:

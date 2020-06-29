@@ -18,6 +18,7 @@ if __name__ == '__main__':
     page_count = 30
     page_end = page_start + page_count - 1
 
+    mode = None
     ncode_list = []
 
     if len(sys.argv) > 1:

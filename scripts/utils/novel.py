@@ -3,6 +3,8 @@ import time
 import datetime
 import re
 import csv
+import copy
+import json
 
 from .mecab import chasen
 
@@ -269,10 +271,85 @@ class NarouRanking:
         return count_elem.text
 
 
+class NovelPages:
+    def __init__(self, page_count=30):
+        self.ncode = None
+        self.page_count = page_count
+        self.pages = []
+
+    def load(self, ncode):
+        self.ncode = ncode
+
+        for page_num in range(1, self.page_count+1):
+            page = NovelPage()
+            page.load(ncode, page_num)
+
+            if page.loaded:
+                self.pages.append(page)
+
+    def get_summary(self):
+        summary = {
+            'count': 0,
+            'sum': {
+                'char_count': 0,
+                'new_line_count': 0,
+                'talk_char_count': 0,
+                'word_count': 0,
+                'word_class': {},
+            },
+            # 'avg': {},
+        }
+
+        for page in self.pages:
+            summary['sum']['char_count'] += page.get_char_count()
+            summary['sum']['new_line_count'] += page.get_new_line_count()
+            summary['sum']['talk_char_count'] += page.get_talk_char_count()
+            summary['sum']['word_count'] += page.get_word_count()
+
+            word_classes = page.get_word_classes()
+            self.add_word_class_to(word_classes, summary['sum']['word_class'])
+
+        summary['count'] = len(self.pages)
+
+        if summary['count'] > 0:
+            summary['avg'] = copy.deepcopy(summary['sum'])
+
+            summary['avg']['char_count'] /= summary['count']
+            summary['avg']['new_line_count'] /= summary['count']
+            summary['avg']['talk_char_count'] /= summary['count']
+            summary['avg']['word_count'] /= summary['count']
+
+            for key in summary['avg']['word_class'].keys():
+                summary['avg']['word_class'][key] /= summary['count']
+
+        return summary
+
+    def add_word_class_to(self, src, dest):
+        for key, value in src.items():
+            if dest.get(key):
+                dest[key] += value
+            else:
+                dest[key] = value
+
+    def save(self):
+        if not self.ncode:
+            return None
+
+        novel_dir_path = os.path.join(NOVELS_ROOT_PATH, self.ncode)
+        file_name = '{}_summary.json'.format(self.ncode)
+        dest_path = os.path.join(novel_dir_path, file_name)
+
+        with open(dest_path, 'w') as f:
+            json.dump(self.get_summary(), f, indent=2, ensure_ascii=False)
+
+        return dest_path
+
+
 class NovelPage:
     def __init__(self):
         self.ncode = None
         self.page_num = None
+        self.loaded = False
         self.url = ''
         self.novel_title = ''
         self.page_title = ''
@@ -295,8 +372,10 @@ class NovelPage:
             self.page_title = f.readline().replace('\n', '')
             self.page_body = f.read()
 
-        #print(self.url, self.novel_title, self.page_title)
-        #print(self.page_body[:100])
+            # print(self.url, self.novel_title, self.page_title)
+            # print(self.page_body[:100])
+
+        self.loaded = True
 
     def get_char_count(self):
         return len(self.page_body)
@@ -341,7 +420,7 @@ class NovelPage:
         parsed = self.get_body_chasen()
         return len(parsed)
 
-    def get_chasen_summary(self):
+    def get_chasen_word_classes(self):
         summary = {}
 
         parsed = self.get_body_chasen()
@@ -357,6 +436,6 @@ class NovelPage:
 
         return summary
 
-    def get_word_summary(self):
-        return self.get_chasen_summary()
+    def get_word_classes(self):
+        return self.get_chasen_word_classes()
 

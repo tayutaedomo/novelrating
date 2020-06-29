@@ -32,7 +32,6 @@ if __name__ == '__main__':
         novels = load_ranking_csv()
         print(datetime.datetime.now().isoformat(), 'Ranking Count:', len(novels))
         ncode_list = [novel['ncode'] for novel in novels]
-        ncode_list = ncode_list[:2]
 
     elif mode == 'ncode':
         ncode = sys.argv[2]

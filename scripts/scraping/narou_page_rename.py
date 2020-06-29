@@ -6,7 +6,7 @@ DEST_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'narou')
 
 
 if __name__ == '__main__':
-    file_paths = glob.glob(os.path.join(DEST_ROOT_PATH, '*', '*-p*.txt'))
+    file_paths = glob.glob(os.path.join(DEST_ROOT_PATH, '*', '*_p*.txt'))
 
     for src_path in file_paths:
         dir_path = os.path.dirname(src_path)

@@ -4,6 +4,8 @@ import datetime
 import re
 import csv
 
+from .mecab import chasen
+
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 NOVELS_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'novels')
 NOVELS_BAK_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'novels.bak')
@@ -265,4 +267,96 @@ class NarouRanking:
         last_elem = elem_list[-1]
         count_elem = last_elem.find_element_by_css_selector('span')
         return count_elem.text
+
+
+class NovelPage:
+    def __init__(self):
+        self.ncode = None
+        self.page_num = None
+        self.url = ''
+        self.novel_title = ''
+        self.page_title = ''
+        self.page_body = ''
+
+    def load(self, ncode, page_num):
+        self.ncode = ncode
+        self.page_num = page_num
+
+        novel_dir_path = os.path.join(NOVELS_ROOT_PATH, self.ncode)
+        page_file_name = '{}_p{}.txt'.format(self.ncode, 1)
+        page_file_path = os.path.join(novel_dir_path, page_file_name)
+
+        if not os.path.exists(page_file_path):
+            return
+
+        with open(page_file_path, 'r', encoding='utf-8') as f:
+            self.url = f.readline().replace('\n', '')
+            self.novel_title = f.readline().replace('\n', '')
+            self.page_title = f.readline().replace('\n', '')
+            self.page_body = f.read()
+
+        #print(self.url, self.novel_title, self.page_title)
+        #print(self.page_body[:100])
+
+    def get_char_count(self):
+        return len(self.page_body)
+
+    def get_new_line_count(self):
+        return self.page_body.count(r'\n')
+
+    def get_split_body_lines(self):
+        lines = self.page_body.split('\\n')
+        return [line for line in lines if line.strip() != '']
+
+    def get_talk_lines(self):
+        lines = []
+
+        for line in self.get_split_body_lines():
+            # pos_1 = line.find('「')
+            # pos_2 = line.find('『')
+            # if pos_1 != -1 or pos_2 != -1:
+            #     print(pos_1, pos_2, line)
+
+            line = line.replace('『', '')
+            line = line.replace('』', '')
+            line = line.replace(r'\u3000', '')
+            line = re.sub(r'\s', '', line)
+            matched = re.match('(「)(.+?)(」)', line)
+            if matched:
+                lines.append(matched.groups()[1])
+
+        return lines
+
+    def get_talk_char_count(self):
+        return len(''.join(self.get_talk_lines()))
+
+    def get_normalized_body(self):
+        body = re.sub(r'(\\n|\\u3000)', '', self.page_body)
+        return body
+
+    def get_body_chasen(self):
+        return chasen(self.get_normalized_body())
+
+    def get_word_count(self):
+        parsed = self.get_body_chasen()
+        return len(parsed)
+
+    def get_chasen_summary(self):
+        summary = {}
+
+        parsed = self.get_body_chasen()
+        for row in parsed.split('\n')[:-2]:  # Exclude EOS
+            cols = row.split('\t')
+            word_class = cols[3]
+            #print(word_class)
+
+            if summary.get(word_class):
+                summary[word_class] += 1
+            else:
+                summary[word_class] = 1
+
+        return summary
+
+    def get_word_summary(self):
+        return self.get_chasen_summary()
 

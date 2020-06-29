@@ -5,7 +5,10 @@ import re
 import csv
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
+NOVELS_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'novels')
+NOVELS_BAK_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'novels.bak')
 BOOKMARK_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'bookmark.csv')
+BOOKMARK_RATING_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'bookmark_rating.csv')
 RANKING_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'ranking.csv')
 
 

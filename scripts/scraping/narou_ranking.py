@@ -8,20 +8,19 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-DEST_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'ranking.csv')
 
 sys.path.append(ROOT_PATH)
 
-from scripts.utils.novel import NarouRanking
+from scripts.utils.novel import NarouRanking, RANKING_CSV_PATH
 
 
 def create_cache():
     cache = {}
 
-    if not os.path.exists(DEST_ROOT_PATH):
+    if not os.path.exists(RANKING_CSV_PATH):
         return cache
 
-    with open(DEST_ROOT_PATH, 'r', encoding='utf-8') as f:
+    with open(RANKING_CSV_PATH, 'r', encoding='utf-8') as f:
         for row in csv.reader(f):
             cache[create_cache_id(row[0], row[1])] = True  # { cache_id: True, ... }
 
@@ -47,7 +46,7 @@ def append_to_csv(novel):
         novel.get('title'),
     )
 
-    with open(DEST_ROOT_PATH, 'a') as f:
+    with open(RANKING_CSV_PATH, 'a') as f:
         f.write(csv_line + '\n')
 
 

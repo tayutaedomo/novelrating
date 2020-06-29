@@ -5,8 +5,8 @@ import re
 import csv
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-BOOKMARK_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'bookmark.csv')
-RANKING_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'ranking.csv')
+BOOKMARK_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'bookmark.csv')
+RANKING_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'ranking.csv')
 
 
 def login_narou(driver, email, password):

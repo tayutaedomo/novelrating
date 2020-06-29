@@ -2,8 +2,8 @@ import os
 import glob
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-NAROU_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'novels')
-NAROU_BAK_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'narou.bak')
+NAROU_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'novels')
+NAROU_BAK_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'novels.bak')
 
 
 if __name__ == '__main__':

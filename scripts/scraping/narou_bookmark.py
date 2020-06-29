@@ -8,7 +8,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-CSV_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'my_bookmark.csv')
+CSV_PATH = os.path.join(ROOT_PATH, 'data', 'bookmark.csv')
 
 sys.path.append(ROOT_PATH)
 

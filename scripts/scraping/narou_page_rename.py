@@ -2,7 +2,7 @@ import os
 import glob
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-DEST_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'narou', 'novels')
+DEST_ROOT_PATH = os.path.join(ROOT_PATH, 'data', 'novels')
 
 
 if __name__ == '__main__':

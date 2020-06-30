@@ -44,8 +44,16 @@ if __name__ == '__main__':
 
     for i, ncode in enumerate(ncode_list):
         novel_info = NovelInfo()
-        ret = novel_info.scrape(driver, ncode)
-        pp.pprint(ret)
+
+        if novel_info.exist_json(ncode):
+            print(datetime.datetime.now().isoformat(), i, ncode, 'Skip')
+            continue
+
+        print(datetime.datetime.now().isoformat(), i, ncode, 'New')
+        novel_info.scrape(driver, ncode)
+        novel_info.save()
+
+        print(datetime.datetime.now().isoformat(), i, ncode, 'Saved info')
 
         if i < len(ncode_list) - 1:
             print(datetime.datetime.now().isoformat(), 'Sleep(3)')

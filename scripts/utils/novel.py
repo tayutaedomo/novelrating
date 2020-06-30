@@ -442,21 +442,10 @@ class NovelInfo:
     def __init__(self):
         self.ncode = None
         self.raw = {'result': 0}
-        # self.title = ''
-        # self.overview = ''
-        # self.author = ''
-        # self.keywords = ''
-        # self.category = ''
-        # self.created_at = ''
-        # self.updated_at = ''
-        # self.comment_count = ''
-        # self.review_count = ''
-        # self.bookmark_count = ''
-        # self.rating_total = ''
-        # self.rating = ''
-        # self.report = ''
-        # self.public = ''
-        # self.word_count = ''
+
+    def exist_json(self, ncode):
+        json_path = self.create_json_path(ncode)
+        return os.path.exists(json_path)
 
     def scrape(self, driver, ncode):
         self.ncode = ncode
@@ -494,15 +483,15 @@ class NovelInfo:
             h1_elem = driver.find_element_by_css_selector('h1')
             self.raw['title'] = h1_elem.text
 
-            td_list = driver.find_elements_by_css_selector('table#self.rawtable1 td')
+            td_list = driver.find_elements_by_css_selector('table#noveltable1 td')
 
             if td_list:
                 self.raw['overview'] = self.strip_text(td_list[0])
-                self.raw['author'] = self.strip_text(td_list[1])
+                self.raw['author'] = self.extract_author_id(td_list[1])
                 self.raw['keywords'] = self.strip_text(td_list[2])
                 self.raw['category'] = self.strip_text(td_list[3])
 
-            td_list = driver.find_elements_by_css_selector('table#self.rawtable2 td')
+            td_list = driver.find_elements_by_css_selector('table#noveltable2 td')
 
             if td_list:
                 self.raw['created_at'] = self.strip_text(td_list[0])
@@ -534,4 +523,31 @@ class NovelInfo:
         text = elem.text.replace('\n', ',').replace('\r\n', ',')
         text.lstrip().rstrip()
         return text
+
+    def extract_author_id(self, parent_elem):
+        author_elem = parent_elem.find_element_by_css_selector('a')
+        return self.extract_author_id_from_url(author_elem.get_attribute('href'))
+
+    def extract_author_id_from_url(self, url):
+        matched = re.match(r'^https:\/\/mypage.syosetu.com\/(.+)\/$', url)
+        if matched:
+            return matched.group(1)
+        else:
+            return ''
+
+    def save(self):
+        if not self.ncode or self.raw['result'] != 1:
+            return None
+
+        dest_path = self.create_json_path(self.ncode)
+
+        with open(dest_path, 'w') as f:
+            json.dump(self.raw, f, indent=2, ensure_ascii=False)
+
+        return dest_path
+
+    def create_json_path(self, ncode):
+        novel_dir_path = os.path.join(NOVELS_ROOT_PATH, ncode)
+        file_name = '{}_info.json'.format(ncode)
+        return os.path.join(novel_dir_path, file_name)
 

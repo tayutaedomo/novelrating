@@ -437,3 +437,101 @@ class NovelPage:
     def get_word_classes(self):
         return self.get_chasen_word_classes()
 
+
+class NovelInfo:
+    def __init__(self):
+        self.ncode = None
+        self.raw = {'result': 0}
+        # self.title = ''
+        # self.overview = ''
+        # self.author = ''
+        # self.keywords = ''
+        # self.category = ''
+        # self.created_at = ''
+        # self.updated_at = ''
+        # self.comment_count = ''
+        # self.review_count = ''
+        # self.bookmark_count = ''
+        # self.rating_total = ''
+        # self.rating = ''
+        # self.report = ''
+        # self.public = ''
+        # self.word_count = ''
+
+    def scrape(self, driver, ncode):
+        self.ncode = ncode
+
+        self.raw = {
+            'result': 0,
+            'ncode': ncode,
+            'title': '',
+            'overview': '',
+            'author': '',
+            'keywords': '',
+            'category': '',
+            'created_at': '',
+            'updated_at': '',
+            'comment_count': '',
+            'review_count': '',
+            'bookmark_count': '',
+            'rating_total': '',
+            'rating': '',
+            'report': '',
+            'public': '',
+            'word_count': '',
+            'time': '',
+        }
+
+        if not ncode:
+            return self.raw
+
+        url = 'https://ncode.syosetu.com/novelview/infotop/ncode/{}/'.format(ncode)
+        print(datetime.datetime.now().isoformat(), 'GET:', url)
+
+        driver.get(url)
+
+        try:
+            h1_elem = driver.find_element_by_css_selector('h1')
+            self.raw['title'] = h1_elem.text
+
+            td_list = driver.find_elements_by_css_selector('table#self.rawtable1 td')
+
+            if td_list:
+                self.raw['overview'] = self.strip_text(td_list[0])
+                self.raw['author'] = self.strip_text(td_list[1])
+                self.raw['keywords'] = self.strip_text(td_list[2])
+                self.raw['category'] = self.strip_text(td_list[3])
+
+            td_list = driver.find_elements_by_css_selector('table#self.rawtable2 td')
+
+            if td_list:
+                self.raw['created_at'] = self.strip_text(td_list[0])
+                self.raw['updated_at'] = self.strip_text(td_list[1])
+                self.raw['comment_count'] = self.strip_text(td_list[2])
+                self.raw['review_count'] = self.strip_text(td_list[3])
+                self.raw['bookmark_count'] = self.strip_text(td_list[4])
+                self.raw['rating_total'] = self.strip_text(td_list[5])
+                self.raw['rating'] = self.strip_text(td_list[6])
+                self.raw['report'] = self.strip_text(td_list[7])
+                self.raw['public'] = self.strip_text(td_list[8])
+                self.raw['word_count'] = self.strip_text(td_list[9])
+                self.raw['time'] = datetime.datetime.now().isoformat()
+
+                self.raw['result'] = 1    # Completed all successfully
+
+        except Exception as e:
+            print(datetime.datetime.now().isoformat(), e)
+
+        return self.raw
+
+    def strip_text(self, elem):
+        if not elem:
+            return None
+
+        if not elem.text:
+            return None
+
+        text = elem.text.replace('\n', ',').replace('\r\n', ',')
+        text.lstrip().rstrip()
+        return text
+

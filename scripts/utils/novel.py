@@ -276,23 +276,28 @@ class NovelPages:
         self.page_count = page_count
         self.ncode = None
         self.pages = []
+        self.summary = {'result': 0}
 
     def exist_json(self, ncode):
         json_path = self.create_json_path(ncode)
         return os.path.exists(json_path)
 
-    def load(self, ncode):
+    def scrape(self, ncode):
         self.ncode = ncode
 
         for page_num in range(1, self.page_count+1):
             page = NovelPage()
-            page.load(ncode, page_num)
+            page.scrape(ncode, page_num)
 
             if page.loaded:
                 self.pages.append(page)
 
     def get_summary(self):
-        summary = {
+        if self.summary.get('result') == 1:
+            return self.summary
+
+        self.summary = {
+            'result': 0,
             'count': 0,
             'sum': {
                 'char_count': 0,
@@ -305,28 +310,30 @@ class NovelPages:
         }
 
         for page in self.pages:
-            summary['sum']['char_count'] += page.get_char_count()
-            summary['sum']['new_line_count'] += page.get_new_line_count()
-            summary['sum']['talk_char_count'] += page.get_talk_char_count()
-            summary['sum']['word_count'] += page.get_word_count()
+            self.summary['sum']['char_count'] += page.get_char_count()
+            self.summary['sum']['new_line_count'] += page.get_new_line_count()
+            self.summary['sum']['talk_char_count'] += page.get_talk_char_count()
+            self.summary['sum']['word_count'] += page.get_word_count()
 
             word_classes = page.get_word_classes()
-            self.add_word_class_to(word_classes, summary['sum']['word_class'])
+            self.add_word_class_to(word_classes, self.summary['sum']['word_class'])
 
-        summary['count'] = len(self.pages)
+        self.summary['count'] = len(self.pages)
 
-        if summary['count'] > 0:
-            summary['avg'] = copy.deepcopy(summary['sum'])
+        if self.summary['count'] > 0:
+            self.summary['avg'] = copy.deepcopy(self.summary['sum'])
 
-            summary['avg']['char_count'] /= summary['count']
-            summary['avg']['new_line_count'] /= summary['count']
-            summary['avg']['talk_char_count'] /= summary['count']
-            summary['avg']['word_count'] /= summary['count']
+            self.summary['avg']['char_count'] /= self.summary['count']
+            self.summary['avg']['new_line_count'] /= self.summary['count']
+            self.summary['avg']['talk_char_count'] /= self.summary['count']
+            self.summary['avg']['word_count'] /= self.summary['count']
 
-            for key in summary['avg']['word_class'].keys():
-                summary['avg']['word_class'][key] /= summary['count']
+            for key in self.summary['avg']['word_class'].keys():
+                self.summary['avg']['word_class'][key] /= self.summary['count']
 
-        return summary
+        self.summary['result'] = 1
+
+        return self.summary
 
     def add_word_class_to(self, src, dest):
         for key, value in src.items():
@@ -351,6 +358,19 @@ class NovelPages:
         file_name = '{}_summary.json'.format(ncode)
         return os.path.join(novel_dir_path, file_name)
 
+    def load(self, ncode):
+        self.ncode = ncode
+
+        if not self.exist_json(self.ncode):
+            return None
+
+        dest_path = self.create_json_path(self.ncode)
+
+        with open(dest_path, 'r') as f:
+            self.summary = json.load(f)
+
+        return self.summary
+
 
 class NovelPage:
     def __init__(self):
@@ -362,7 +382,7 @@ class NovelPage:
         self.page_title = ''
         self.page_body = ''
 
-    def load(self, ncode, page_num):
+    def scrape(self, ncode, page_num):
         self.ncode = ncode
         self.page_num = page_num
 
@@ -562,4 +582,17 @@ class NovelInfo:
 
     def create_dir_path(self, ncode):
         return os.path.join(NOVELS_ROOT_PATH, ncode)
+
+    def load(self, ncode):
+        self.ncode = ncode
+
+        if not self.exist_json(self.ncode):
+            return None
+
+        dest_path = self.create_json_path(self.ncode)
+
+        with open(dest_path, 'r') as f:
+            self.raw = json.load(f)
+
+        return self.raw
 

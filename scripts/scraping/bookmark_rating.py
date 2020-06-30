@@ -68,14 +68,16 @@ def append_to_csv(bookmark):
 
 
 if __name__ == '__main__':
+    email = os.getenv('NAROU_EMAIL')
+    password = os.getenv('NAROU_PASSWORED')
+
+    # ncode = 'n7951ei'  # No Rating
+    # ncode = 'n6859du'  # is-half
     bookmarks = load_bookmark_csv()
     print(datetime.datetime.now().isoformat(), 'Bookmark Count:', len(bookmarks))
 
     cache = create_cache()
     print(datetime.datetime.now().isoformat(), 'Cache Count:', len(cache))
-
-    email = os.getenv('NAROU_EMAIL')
-    password = os.getenv('NAROU_PASSWORED')
 
     options = Options()
     options.add_argument('--headless')
@@ -85,8 +87,6 @@ if __name__ == '__main__':
     login_narou(driver, email, password)
 
     for i, bookmark in enumerate(bookmarks):
-        #ncode = 'n7951ei'  # No Rating
-        #ncode = 'n6859du'  # is-half
         ncode = bookmark['ncode']
 
         if cache.get(ncode):

@@ -437,3 +437,129 @@ class NovelPage:
     def get_word_classes(self):
         return self.get_chasen_word_classes()
 
+
+class NovelInfo:
+    def __init__(self):
+        self.ncode = None
+        self.raw = {'result': 0}
+
+    def exist_json(self, ncode):
+        json_path = self.create_json_path(ncode)
+        return os.path.exists(json_path)
+
+    def scrape(self, driver, ncode):
+        self.ncode = ncode
+
+        self.raw = {
+            'result': 0,
+            'ncode': ncode,
+            'title': '',
+            'overview': '',
+            'author': '',
+            'keywords': '',
+            'category': '',
+            'created_at': '',
+            'updated_at': '',
+            'comment_count': '',
+            'review_count': '',
+            'bookmark_count': '',
+            'rating_total': '',
+            'rating': '',
+            'report': '',
+            'public': '',
+            'word_count': '',
+            'time': '',
+        }
+
+        if not ncode:
+            return self.raw
+
+        url = 'https://ncode.syosetu.com/novelview/infotop/ncode/{}/'.format(ncode)
+        print(datetime.datetime.now().isoformat(), 'GET:', url)
+
+        driver.get(url)
+
+        try:
+            h1_elem = driver.find_element_by_css_selector('h1')
+            self.raw['title'] = h1_elem.text
+
+            td_list = driver.find_elements_by_css_selector('table#noveltable1 td')
+
+            if td_list:
+                self.raw['overview'] = self.strip_text(td_list[0])
+                self.raw['author'] = self.extract_author_id(td_list[1])
+                self.raw['keywords'] = self.strip_text(td_list[2])
+                self.raw['category'] = self.strip_text(td_list[3])
+
+            td_list = driver.find_elements_by_css_selector('table#noveltable2 td')
+
+            if td_list:
+                self.raw['created_at'] = self.strip_text(td_list[0])
+                self.raw['updated_at'] = self.strip_text(td_list[1])
+                self.raw['comment_count'] = self.strip_text(td_list[2])
+                self.raw['review_count'] = self.strip_text(td_list[3])
+                self.raw['bookmark_count'] = self.strip_text(td_list[4])
+                self.raw['rating_total'] = self.strip_text(td_list[5])
+                self.raw['rating'] = self.strip_text(td_list[6])
+                self.raw['report'] = self.strip_text(td_list[7])
+                self.raw['public'] = self.strip_text(td_list[8])
+                self.raw['word_count'] = self.strip_text(td_list[9])
+                self.raw['time'] = datetime.datetime.now().isoformat()
+
+                self.raw['result'] = 1    # Completed all successfully
+
+        except Exception as e:
+            print(datetime.datetime.now().isoformat(), e)
+
+        return self.raw
+
+    def strip_text(self, elem):
+        if not elem:
+            return None
+
+        if not elem.text:
+            return None
+
+        text = elem.text.replace('\n', ',').replace('\r\n', ',')
+        text.lstrip().rstrip()
+        return text
+
+    def extract_author_id(self, parent_elem):
+        try:
+            author_elem = parent_elem.find_element_by_css_selector('a')
+            return self.extract_author_id_from_url(author_elem.get_attribute('href'))
+        except Exception:
+            return parent_elem.text
+
+    def extract_author_id_from_url(self, url):
+        matched = re.match(r'^https:\/\/mypage.syosetu.com\/(.+)\/$', url)
+        if matched:
+            return matched.group(1)
+        else:
+            return ''
+
+    def save(self):
+        if not self.ncode or self.raw['result'] != 1:
+            return None
+
+        dest_path = self.create_json_path(self.ncode)
+
+        self.create_ncode_directory(self.ncode)
+
+        with open(dest_path, 'w') as f:
+            json.dump(self.raw, f, indent=2, ensure_ascii=False)
+
+        return dest_path
+
+    def create_json_path(self, ncode):
+        dir_path = self.create_dir_path(ncode)
+        file_name = '{}_info.json'.format(ncode)
+        return os.path.join(dir_path, file_name)
+
+    def create_ncode_directory(self, ncode):
+        dir_path = self.create_dir_path(ncode)
+        os.makedirs(dir_path, exist_ok=True)
+
+    def create_dir_path(self, ncode):
+        return os.path.join(NOVELS_ROOT_PATH, ncode)
+

@@ -43,7 +43,7 @@ if __name__ == '__main__':
             continue
 
         print(datetime.datetime.now().isoformat(), i, ncode, 'New')
-        pages.scrape(ncode)
+        pages.load(ncode)
         pages.save()
 
         print(datetime.datetime.now().isoformat(), i, ncode, 'Saved summary')

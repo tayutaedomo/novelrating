@@ -31,5 +31,5 @@ if __name__ == '__main__':
         novel_info.load(ncode)
 
         novel_pages = NovelPages()
-        novel_pages.load(ncode)
+        novel_pages.load_summary(ncode)
 

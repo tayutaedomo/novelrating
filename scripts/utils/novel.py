@@ -282,12 +282,12 @@ class NovelPages:
         json_path = self.create_json_path(ncode)
         return os.path.exists(json_path)
 
-    def scrape(self, ncode):
+    def load(self, ncode):
         self.ncode = ncode
 
         for page_num in range(1, self.page_count+1):
             page = NovelPage()
-            page.scrape(ncode, page_num)
+            page.load(ncode, page_num)
 
             if page.loaded:
                 self.pages.append(page)
@@ -358,7 +358,7 @@ class NovelPages:
         file_name = '{}_summary.json'.format(ncode)
         return os.path.join(novel_dir_path, file_name)
 
-    def load(self, ncode):
+    def load_summary(self, ncode):
         self.ncode = ncode
 
         if not self.exist_json(self.ncode):
@@ -382,7 +382,7 @@ class NovelPage:
         self.page_title = ''
         self.page_body = ''
 
-    def scrape(self, ncode, page_num):
+    def load(self, ncode, page_num):
         self.ncode = ncode
         self.page_num = page_num
 

@@ -25,25 +25,19 @@ if __name__ == '__main__':
         mode = sys.argv[1]
 
     if mode == 'bookmark':
-        bookmarks = load_bookmark_csv()
-        print(datetime.datetime.now().isoformat(), 'Bookmark Count:', len(bookmarks))
-        ncode_list = [bookmark['ncode'] for bookmark in bookmarks]
+        ncode_list = [bookmark['ncode'] for bookmark in load_bookmark_csv()]
+        print(datetime.datetime.now().isoformat(), 'Bookmark Count:', len(ncode_list))
 
     elif mode == 'ranking':
-        novels = load_ranking_csv()
-        print(datetime.datetime.now().isoformat(), 'Ranking Count:', len(novels))
-        ncode_list = [novel['ncode'] for novel in novels]
+        ncode_list = [novel['ncode'] for novel in load_ranking_csv()]
+        print(datetime.datetime.now().isoformat(), 'Ranking Count:', len(ncode_list))
 
     elif mode == 'ncode':
         ncode = sys.argv[2]
         ncode_list.append(ncode)
 
     else:
-        ncode_list = [
-            'n6316bn',
-            'n9669bk',
-            'n7855ck',
-        ]
+        ncode_list = ['n6316bn', 'n9669bk']
 
     options = Options()
     options.add_argument('--headless')

@@ -51,14 +51,6 @@ def append_to_csv(novel):
 
 
 if __name__ == '__main__':
-    cache = create_cache()
-    print(datetime.datetime.now().isoformat(), 'Cache Count:', len(cache))
-
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--incognito')
-    driver = webdriver.Chrome(options=options)
-
     mode = None
     ranking_paths = []
 
@@ -93,6 +85,14 @@ if __name__ == '__main__':
         ranking_paths = [
             'genrelist/type/weekly_101',
         ]
+
+    cache = create_cache()
+    print(datetime.datetime.now().isoformat(), 'Cache Count:', len(cache))
+
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--incognito')
+    driver = webdriver.Chrome(options=options)
 
     for i, ranking_path in enumerate(ranking_paths):
         ranking = NarouRanking(driver)

@@ -525,8 +525,11 @@ class NovelInfo:
         return text
 
     def extract_author_id(self, parent_elem):
-        author_elem = parent_elem.find_element_by_css_selector('a')
-        return self.extract_author_id_from_url(author_elem.get_attribute('href'))
+        try:
+            author_elem = parent_elem.find_element_by_css_selector('a')
+            return self.extract_author_id_from_url(author_elem.get_attribute('href'))
+        except Exception:
+            return parent_elem.text
 
     def extract_author_id_from_url(self, url):
         matched = re.match(r'^https:\/\/mypage.syosetu.com\/(.+)\/$', url)
@@ -541,13 +544,22 @@ class NovelInfo:
 
         dest_path = self.create_json_path(self.ncode)
 
+        self.create_ncode_directory(self.ncode)
+
         with open(dest_path, 'w') as f:
             json.dump(self.raw, f, indent=2, ensure_ascii=False)
 
         return dest_path
 
     def create_json_path(self, ncode):
-        novel_dir_path = os.path.join(NOVELS_ROOT_PATH, ncode)
+        dir_path = self.create_dir_path(ncode)
         file_name = '{}_info.json'.format(ncode)
-        return os.path.join(novel_dir_path, file_name)
+        return os.path.join(dir_path, file_name)
+
+    def create_ncode_directory(self, ncode):
+        dir_path = self.create_dir_path(ncode)
+        os.makedirs(dir_path, exist_ok=True)
+
+    def create_dir_path(self, ncode):
+        return os.path.join(NOVELS_ROOT_PATH, ncode)
 

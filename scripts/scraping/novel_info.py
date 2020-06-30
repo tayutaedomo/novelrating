@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import datetime
-import pprint as pp
 import chromedriver_binary
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options

@@ -59,24 +59,40 @@ if __name__ == '__main__':
     options.add_argument('--incognito')
     driver = webdriver.Chrome(options=options)
 
-    ranking_paths = [
-        'genrelist/type/weekly_101',
-        'genrelist/type/monthly_101',
-        'genrelist/type/weekly_102',
-        'genrelist/type/weekly_201',
-        'genrelist/type/weekly_202',
-        'genrelist/type/weekly_301',
-        'genrelist/type/weekly_401',
-        'list/type/weekly_total',
-        'list/type/monthly_total',
-        'isekailist/type/weekly_1',
-        'isekailist/type/weekly_2',
-        'isekailist/type/weekly_o',
-        'isekailist/type/monthly_1',
-        'isekailist/type/monthly_2',
-        'isekailist/type/monthly_o',
-        'isekailist/type/quarter_1',
-    ]
+    mode = None
+    ranking_paths = []
+
+    if len(sys.argv) > 1:
+        mode = sys.argv[1]
+
+    if mode == 'all':
+        ranking_paths = [
+            'genrelist/type/weekly_101',
+            'genrelist/type/monthly_101',
+            'genrelist/type/weekly_102',
+            'genrelist/type/weekly_201',
+            'genrelist/type/weekly_202',
+            'genrelist/type/weekly_301',
+            'genrelist/type/weekly_401',
+            'list/type/weekly_total',
+            'list/type/monthly_total',
+            'isekailist/type/weekly_1',
+            'isekailist/type/weekly_2',
+            'isekailist/type/weekly_o',
+            'isekailist/type/monthly_1',
+            'isekailist/type/monthly_2',
+            'isekailist/type/monthly_o',
+            'isekailist/type/quarter_1',
+        ]
+
+    elif mode == 'path':
+        ranking_path = sys.argv[2]
+        ranking_paths.append(ranking_path)
+
+    else:
+        ranking_paths = [
+            'genrelist/type/weekly_101',
+        ]
 
     for i, ranking_path in enumerate(ranking_paths):
         ranking = NarouRanking(driver)

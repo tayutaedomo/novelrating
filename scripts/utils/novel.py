@@ -42,7 +42,26 @@ def load_bookmark_csv():
             bookmarks.append({
                 'category': row[0],
                 'ncode': row[1],
-                'title': row[2],
+                'rating': row[2],
+                'title': row[3],
+            })
+
+    return bookmarks
+
+
+def load_bookmark_rating_csv():
+    bookmarks = []
+
+    if not os.path.exists(BOOKMARK_RATING_CSV_PATH):
+        return bookmarks
+
+    with open(BOOKMARK_RATING_CSV_PATH, 'r', encoding='utf-8') as f:
+        for row in csv.reader(f):
+            bookmarks.append({
+                'ncode': row[0],
+                'category': row[1],
+                'rating': row[2],
+                'title': row[3],
             })
 
     return bookmarks

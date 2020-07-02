@@ -2,6 +2,7 @@ import os
 import datetime
 import csv
 
+from .novel import load_bookmark_rating_csv
 from .novel import NovelInfo, NovelPages
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
@@ -13,7 +14,14 @@ class BookmarkDataMaker:
         self.inputs_list = []
         self.unique_keywords = UniqueCounter()
         self.unique_word_classes = UniqueCounter()
+        self.bookmarks = {}
         self.rows = []
+        self.rating_gradient = {
+            '1': 1.0,
+            '2': 1.5,
+            '3': 0.5,
+            '4': 1.0,
+        }
 
     def load(self, ncode_list):
         self.ncode_list = ncode_list
@@ -34,40 +42,10 @@ class BookmarkDataMaker:
             else:
                 print(datetime.datetime.now().isoformat(), i, ncode, 'Skipped in Maker.load')
 
+        self.bookmarks = load_bookmark_rating_csv()
+
         self.__create_unique_keywords()
         self.__create_unique_word_classes()
-
-    def make(self):
-        for inputs in self.inputs_list:
-            row = {}
-
-            novel_info = inputs['novel_info']
-            novel_pages = inputs['novel_pages']
-
-            row['title'] = novel_info.info['title']
-            row['category'] = novel_info.info['category']
-            row['created_at'] = self.__exchange_to_datetime(novel_info.info['created_at']).timestamp()
-            row['updated_at'] = self.__exchange_to_datetime(novel_info.info['updated_at']).timestamp()
-
-            for keyword in self.unique_keywords.get_unique_keys():
-                row[keyword] = 0
-
-            for keyword in self.__extract_keywors(novel_info):
-                if keyword in row:
-                    row[keyword] = 1
-
-            for word_class in self.unique_word_classes.get_unique_keys():
-                row[word_class] = 0
-
-            word_classes = novel_pages.summary['sum']['word_classes']
-
-            for word_class in word_classes.keys():
-                if word_class in row:
-                    row[word_class] += word_classes[word_class]
-
-            self.rows.append(row)
-
-        return self.rows
 
     def __create_unique_keywords(self):
         self.unique_keywords = UniqueCounter(50)
@@ -101,8 +79,53 @@ class BookmarkDataMaker:
 
         return self.unique_word_classes.get_unique_keys()
 
+    def make(self):
+        for inputs in self.inputs_list:
+            row = {}
+
+            novel_info = inputs['novel_info']
+            novel_pages = inputs['novel_pages']
+            ncode = novel_info.info['ncode']
+
+            row['title'] = novel_info.info['title']
+            row['category'] = novel_info.info['category']
+            row['created_at'] = self.__exchange_to_datetime(novel_info.info['created_at']).timestamp()
+            row['updated_at'] = self.__exchange_to_datetime(novel_info.info['updated_at']).timestamp()
+
+            for keyword in self.unique_keywords.get_unique_keys():
+                row[keyword] = 0
+
+            for keyword in self.__extract_keywors(novel_info):
+                if keyword in row:
+                    row[keyword] = 1
+
+            for word_class in self.unique_word_classes.get_unique_keys():
+                row[word_class] = 0
+
+            word_classes = novel_pages.summary['sum']['word_classes']
+
+            for word_class in word_classes.keys():
+                if word_class in row:
+                    row[word_class] += word_classes[word_class]
+
+            row['rating'] = self.__get_rating(ncode)
+
+            self.rows.append(row)
+
+        return self.rows
+
     def __exchange_to_datetime(self, str_date):
         return datetime.datetime.strptime(str_date, '%Y年 %m月%d日 %H時%M分')
+
+    def __get_rating(self, ncode):
+        bookmark = [bookmark for bookmark in self.bookmarks if bookmark['ncode'] == ncode][0]
+
+        if bookmark:
+            rating = (float)(bookmark['rating'])
+            gradient = (float)(self.rating_gradient.get(bookmark['category'], 0.0))
+            return rating * gradient
+        else:
+            return 0.0
 
     def save(self):
         dest_path = self.__create_dest_path()

@@ -304,7 +304,7 @@ class NovelPages:
                 'new_line_count': 0,
                 'talk_char_count': 0,
                 'word_count': 0,
-                'word_class': {},
+                'word_classes': {},
             },
             # 'avg': {},
         }
@@ -316,20 +316,20 @@ class NovelPages:
             self.summary['sum']['word_count'] += page.get_word_count()
 
             word_classes = page.get_word_classes()
-            self.add_word_class_to(word_classes, self.summary['sum']['word_class'])
+            self.add_word_class_to(word_classes, self.summary['sum']['word_classes'])
 
         self.summary['count'] = len(self.pages)
 
-        if self.summary['count'] > 0:
-            self.summary['avg'] = copy.deepcopy(self.summary['sum'])
-
-            self.summary['avg']['char_count'] /= self.summary['count']
-            self.summary['avg']['new_line_count'] /= self.summary['count']
-            self.summary['avg']['talk_char_count'] /= self.summary['count']
-            self.summary['avg']['word_count'] /= self.summary['count']
-
-            for key in self.summary['avg']['word_class'].keys():
-                self.summary['avg']['word_class'][key] /= self.summary['count']
+        # if self.summary['count'] > 0:
+        #     self.summary['avg'] = copy.deepcopy(self.summary['sum'])
+        #
+        #     self.summary['avg']['char_count'] /= self.summary['count']
+        #     self.summary['avg']['new_line_count'] /= self.summary['count']
+        #     self.summary['avg']['talk_char_count'] /= self.summary['count']
+        #     self.summary['avg']['word_count'] /= self.summary['count']
+        #
+        #     for key in self.summary['avg']['word_classes'].keys():
+        #         self.summary['avg']['word_classes'][key] /= self.summary['count']
 
         self.summary['result'] = 1
 
@@ -461,7 +461,7 @@ class NovelPage:
 class NovelInfo:
     def __init__(self):
         self.ncode = None
-        self.raw = {'result': 0}
+        self.info = {'result': 0}
 
     def exist_json(self, ncode):
         json_path = self.create_json_path(ncode)
@@ -470,7 +470,7 @@ class NovelInfo:
     def scrape(self, driver, ncode):
         self.ncode = ncode
 
-        self.raw = {
+        self.info = {
             'result': 0,
             'ncode': ncode,
             'title': '',
@@ -492,7 +492,7 @@ class NovelInfo:
         }
 
         if not ncode:
-            return self.raw
+            return self.info
 
         url = 'https://ncode.syosetu.com/novelview/infotop/ncode/{}/'.format(ncode)
         print(datetime.datetime.now().isoformat(), 'GET:', url)
@@ -501,37 +501,37 @@ class NovelInfo:
 
         try:
             h1_elem = driver.find_element_by_css_selector('h1')
-            self.raw['title'] = h1_elem.text
+            self.info['title'] = h1_elem.text
 
             td_list = driver.find_elements_by_css_selector('table#noveltable1 td')
 
             if td_list:
-                self.raw['overview'] = self.strip_text(td_list[0])
-                self.raw['author'] = self.extract_author_id(td_list[1])
-                self.raw['keywords'] = self.strip_text(td_list[2])
-                self.raw['category'] = self.strip_text(td_list[3])
+                self.info['overview'] = self.strip_text(td_list[0])
+                self.info['author'] = self.extract_author_id(td_list[1])
+                self.info['keywords'] = self.strip_text(td_list[2])
+                self.info['category'] = self.strip_text(td_list[3])
 
             td_list = driver.find_elements_by_css_selector('table#noveltable2 td')
 
             if td_list:
-                self.raw['created_at'] = self.strip_text(td_list[0])
-                self.raw['updated_at'] = self.strip_text(td_list[1])
-                self.raw['comment_count'] = self.strip_text(td_list[2])
-                self.raw['review_count'] = self.strip_text(td_list[3])
-                self.raw['bookmark_count'] = self.strip_text(td_list[4])
-                self.raw['rating_total'] = self.strip_text(td_list[5])
-                self.raw['rating'] = self.strip_text(td_list[6])
-                self.raw['report'] = self.strip_text(td_list[7])
-                self.raw['public'] = self.strip_text(td_list[8])
-                self.raw['word_count'] = self.strip_text(td_list[9])
-                self.raw['time'] = datetime.datetime.now().isoformat()
+                self.info['created_at'] = self.strip_text(td_list[0])
+                self.info['updated_at'] = self.strip_text(td_list[1])
+                self.info['comment_count'] = self.strip_text(td_list[2])
+                self.info['review_count'] = self.strip_text(td_list[3])
+                self.info['bookmark_count'] = self.strip_text(td_list[4])
+                self.info['rating_total'] = self.strip_text(td_list[5])
+                self.info['rating'] = self.strip_text(td_list[6])
+                self.info['report'] = self.strip_text(td_list[7])
+                self.info['public'] = self.strip_text(td_list[8])
+                self.info['word_count'] = self.strip_text(td_list[9])
+                self.info['time'] = datetime.datetime.now().isoformat()
 
-                self.raw['result'] = 1    # Completed all successfully
+                self.info['result'] = 1    # Completed all successfully
 
         except Exception as e:
             print(datetime.datetime.now().isoformat(), e)
 
-        return self.raw
+        return self.info
 
     def strip_text(self, elem):
         if not elem:
@@ -559,7 +559,7 @@ class NovelInfo:
             return ''
 
     def save(self):
-        if not self.ncode or self.raw['result'] != 1:
+        if not self.ncode or self.info['result'] != 1:
             return None
 
         dest_path = self.create_json_path(self.ncode)
@@ -567,7 +567,7 @@ class NovelInfo:
         self.create_ncode_directory(self.ncode)
 
         with open(dest_path, 'w') as f:
-            json.dump(self.raw, f, indent=2, ensure_ascii=False)
+            json.dump(self.info, f, indent=2, ensure_ascii=False)
 
         return dest_path
 
@@ -592,7 +592,7 @@ class NovelInfo:
         dest_path = self.create_json_path(self.ncode)
 
         with open(dest_path, 'r') as f:
-            self.raw = json.load(f)
+            self.info = json.load(f)
 
-        return self.raw
+        return self.info
 

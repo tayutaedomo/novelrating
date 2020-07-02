@@ -1,5 +1,6 @@
 import os
 import datetime
+import csv
 
 from .novel import NovelInfo, NovelPages
 
@@ -51,22 +52,25 @@ class BookmarkDataMaker:
             for keyword in self.unique_keywords.get_unique_keys():
                 row[keyword] = 0
 
-            for keyword in self._extract_keywors(novel_info):
-                row[keyword] = 1
+            for keyword in self.__extract_keywors(novel_info):
+                if keyword in row:
+                    row[keyword] = 1
 
             for word_class in self.unique_word_classes.get_unique_keys():
                 row[word_class] = 0
 
             word_classes = novel_pages.summary['sum']['word_classes']
+
             for word_class in word_classes.keys():
-                row[word_class] += word_classes[word_class]
+                if word_class in row:
+                    row[word_class] += word_classes[word_class]
 
             self.rows.append(row)
 
         return self.rows
 
     def __create_unique_keywords(self):
-        self.unique_keywords = UniqueCounter()
+        self.unique_keywords = UniqueCounter(50)
 
         for inputs in self.inputs_list:
             novel_info = inputs['novel_info']
@@ -103,9 +107,14 @@ class BookmarkDataMaker:
     def save(self):
         dest_path = self.__create_dest_path()
 
+        if len(self.rows) == 0:
+            return None
+
         with open(dest_path, 'w') as f:
-            # TODO
-            pass
+            writer = csv.DictWriter(f, fieldnames=self.rows[0].keys(), delimiter=",",
+                                    quotechar='"', quoting=csv.QUOTE_ALL)
+
+            writer.writerows(self.rows)
 
         return dest_path
 

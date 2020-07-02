@@ -36,4 +36,5 @@ if __name__ == '__main__':
     # print(len(ncode_list), len(maker.inputs_list))
 
     maker.make()
+    maker.save()
 

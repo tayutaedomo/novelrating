@@ -54,7 +54,7 @@ $ python scripts/scraping/novel_pages.py ranking
 
 7. Download novel info of the ranking novel list
 ```
-$ python scripts/scraping/novel_info.py bookmark
+$ python scripts/scraping/novel_info.py ranking
 ```
 
 8. Create page summary files

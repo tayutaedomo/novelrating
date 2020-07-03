@@ -42,8 +42,7 @@ def load_bookmark_csv():
             bookmarks.append({
                 'category': row[0],
                 'ncode': row[1],
-                'rating': row[2],
-                'title': row[3],
+                'title': row[2],
             })
 
     return bookmarks
@@ -339,18 +338,8 @@ class NovelPages:
 
         self.summary['count'] = len(self.pages)
 
-        # if self.summary['count'] > 0:
-        #     self.summary['avg'] = copy.deepcopy(self.summary['sum'])
-        #
-        #     self.summary['avg']['char_count'] /= self.summary['count']
-        #     self.summary['avg']['new_line_count'] /= self.summary['count']
-        #     self.summary['avg']['talk_char_count'] /= self.summary['count']
-        #     self.summary['avg']['word_count'] /= self.summary['count']
-        #
-        #     for key in self.summary['avg']['word_classes'].keys():
-        #         self.summary['avg']['word_classes'][key] /= self.summary['count']
-
-        self.summary['result'] = 1
+        if self.summary['count'] > 1:
+            self.summary['result'] = 1
 
         return self.summary
 
@@ -360,6 +349,22 @@ class NovelPages:
                 dest[key] += value
             else:
                 dest[key] = value
+
+    def create_average(self, summary):
+        average = {}
+
+        if summary['count'] > 0:
+            average = copy.deepcopy(summary['sum'])
+
+            average['char_count'] /= summary['count']
+            average['new_line_count'] /= summary['count']
+            average['talk_char_count'] /= summary['count']
+            average['word_count'] /= summary['count']
+
+            for key in average['word_classes'].keys():
+                average['word_classes'][key] /= summary['count']
+
+        return average
 
     def save(self):
         if not self.ncode:

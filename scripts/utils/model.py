@@ -26,7 +26,12 @@ class BookmarkDataMaker:
     def load(self, ncode_list):
         self.ncode_list = ncode_list
 
+        self.bookmarks = load_bookmark_rating_csv()
+
         for i, ncode in enumerate(self.ncode_list):
+            if int(self.__get_bookmark_category(ncode)) >= 4:
+                continue    # Targets are 1,2,3
+
             novel_info = NovelInfo()
             novel_info.load(ncode)
 
@@ -41,8 +46,6 @@ class BookmarkDataMaker:
 
             else:
                 print(datetime.datetime.now().isoformat(), i, ncode, 'Skipped in Maker.load')
-
-        self.bookmarks = load_bookmark_rating_csv()
 
         self.__create_unique_keywords()
         self.__create_unique_word_classes()
@@ -80,17 +83,26 @@ class BookmarkDataMaker:
         return self.unique_word_classes.get_unique_keys()
 
     def make(self):
-        for inputs in self.inputs_list:
+        for i, inputs in enumerate(self.inputs_list):
             row = {}
 
             novel_info = inputs['novel_info']
             novel_pages = inputs['novel_pages']
             ncode = novel_info.info['ncode']
 
+            print(datetime.datetime.now().isoformat(), i, ncode, 'in Maker.make')
+
+            row['ncode'] = novel_info.info['ncode']
             row['title'] = novel_info.info['title']
             row['category'] = novel_info.info['category']
+            row['bookmark_cat'] = self.__get_bookmark_category(ncode)
             row['created_at'] = self.__exchange_to_datetime(novel_info.info['created_at']).timestamp()
             row['updated_at'] = self.__exchange_to_datetime(novel_info.info['updated_at']).timestamp()
+
+            self.extend_summary_data(novel_pages.summary['sum'], row, 'sum')
+
+            avg_data = novel_pages.create_average(novel_pages.summary)
+            self.extend_summary_data(avg_data, row, 'avg')
 
             for keyword in self.unique_keywords.get_unique_keys():
                 row[keyword] = 0
@@ -117,6 +129,27 @@ class BookmarkDataMaker:
     def __exchange_to_datetime(self, str_date):
         return datetime.datetime.strptime(str_date, '%Y年 %m月%d日 %H時%M分')
 
+    def extend_summary_data(self, src, dest, prefix):
+        keys = [
+            'char_count',
+            'new_line_count',
+            'talk_char_count',
+            'word_count',
+        ]
+
+        for key in keys:
+            new_key = '{}_{}'.format(prefix, key)
+            dest[new_key] = src[key]
+
+        return dest
+
+    def __get_bookmark_category(self, ncode):
+        bookmark = [bookmark for bookmark in self.bookmarks if bookmark['ncode'] == ncode][0]
+        if bookmark:
+            return bookmark['category']
+        else:
+            return -1
+
     def __get_rating(self, ncode):
         bookmark = [bookmark for bookmark in self.bookmarks if bookmark['ncode'] == ncode][0]
 
@@ -136,7 +169,7 @@ class BookmarkDataMaker:
         with open(dest_path, 'w') as f:
             writer = csv.DictWriter(f, fieldnames=self.rows[0].keys(), delimiter=",",
                                     quotechar='"', quoting=csv.QUOTE_ALL)
-
+            writer.writeheader()
             writer.writerows(self.rows)
 
         return dest_path
@@ -150,7 +183,7 @@ class BookmarkDataMaker:
         return os.path.join(ROOT_PATH, 'data')
 
     def __create_file_name(self):
-        return 'train_bookmark.csv'
+        return 'bookmark_train_data.csv'
 
 
 class UniqueCounter:

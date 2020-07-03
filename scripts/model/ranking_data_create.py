@@ -29,12 +29,12 @@ if __name__ == '__main__':
     maker = RankingDataMaker()
     maker.load(ncode_list)
 
-    pp.pprint(maker.unique_keywords.get_sorted_items(True))
-    pp.pprint(maker.unique_word_classes.get_sorted_items(True))
-    pp.pprint(maker.unique_keywords.get_unique_keys())
-    pp.pprint(maker.unique_word_classes.get_unique_keys())
-    print(len(ncode_list), len(maker.inputs_list))
+    # pp.pprint(maker.unique_keywords.get_sorted_items(True))
+    # pp.pprint(maker.unique_word_classes.get_sorted_items(True))
+    # pp.pprint(maker.unique_keywords.get_unique_keys())
+    # pp.pprint(maker.unique_word_classes.get_unique_keys())
+    # print(len(ncode_list), len(maker.inputs_list))
 
-    #maker.make()
-    #maker.save()
+    maker.make()
+    maker.save()
 

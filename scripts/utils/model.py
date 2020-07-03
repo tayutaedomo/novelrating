@@ -139,7 +139,7 @@ class DataMaker:
         return -1   # Return dummy data
 
     def _get_rating(self, ncode):
-        return 0.0  # Return dummy data
+        return -1   # Return dummy data
 
     def save(self):
         dest_path = self._create_dest_path()
@@ -169,7 +169,7 @@ class DataMaker:
 
 class BookmarkDataMaker(DataMaker):
     def __init__(self):
-        super(DataMaker, self).__init__()
+        super(BookmarkDataMaker, self).__init__()
 
         self.bookmarks = {}
         self.rating_gradient = {
@@ -207,10 +207,10 @@ class BookmarkDataMaker(DataMaker):
 
 class RankingDataMaker(DataMaker):
     def __init__(self):
-        super(DataMaker, self).__init__()
+        super(RankingDataMaker, self).__init__()
 
     def _create_file_name(self):
-        return 'ranking_train_data.csv'
+        return 'ranking_test_data.csv'
 
 
 class UniqueCounter:

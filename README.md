@@ -30,7 +30,7 @@ $ python scripts/scraping/novel_page_bulk.py bookmark
 ```
 or
 ```
-$ python scripts/scraping/novel_page_bulk.py ncode <Target ncode>
+$ python scripts/scraping/novel_pages.py ncode <Target ncode>
 ```
 
 4. Download novel info of the bookmark list
@@ -49,7 +49,7 @@ $ python scripts/scraping/ranking.py path <Target ranking_path>
 
 6. Download novel pages of the bookmark list
 ```
-$ python scripts/scraping/novel_page_bulk.py ranking
+$ python scripts/scraping/novel_pages.py ranking
 ```
 
 7. Download novel info of the ranking novel list

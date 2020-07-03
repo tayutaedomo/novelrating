@@ -8,25 +8,16 @@ from .novel import NovelInfo, NovelPages
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 
 
-class BookmarkDataMaker:
+class DataMaker:
     def __init__(self):
         self.ncode_list = []
         self.inputs_list = []
         self.unique_keywords = UniqueCounter()
         self.unique_word_classes = UniqueCounter()
-        self.bookmarks = {}
         self.rows = []
-        self.rating_gradient = {
-            '1': 1.0,
-            '2': 1.5,
-            '3': 0.5,
-            '4': 1.0,
-        }
 
     def load(self, ncode_list):
-        self.bookmarks = load_bookmark_rating_csv()
-        self.ncode_list = [ncode for ncode in ncode_list
-                           if int(self._get_bookmark_category(ncode)) <= 4]
+        self.ncode_list = ncode_list
 
         self._create_novel_inputs()
         self._create_unique_keywords()
@@ -145,21 +136,10 @@ class BookmarkDataMaker:
         return dest
 
     def _get_bookmark_category(self, ncode):
-        bookmark = [bookmark for bookmark in self.bookmarks if bookmark['ncode'] == ncode][0]
-        if bookmark:
-            return bookmark['category']
-        else:
-            return -1
+        return -1   # Return dummy data
 
     def _get_rating(self, ncode):
-        bookmark = [bookmark for bookmark in self.bookmarks if bookmark['ncode'] == ncode][0]
-
-        if bookmark:
-            rating = (float)(bookmark['rating'])
-            gradient = (float)(self.rating_gradient.get(bookmark['category'], 0.0))
-            return rating * gradient
-        else:
-            return 0.0
+        return 0.0  # Return dummy data
 
     def save(self):
         dest_path = self._create_dest_path()
@@ -184,7 +164,53 @@ class BookmarkDataMaker:
         return os.path.join(ROOT_PATH, 'data')
 
     def _create_file_name(self):
+        return 'data.csv'
+
+
+class BookmarkDataMaker(DataMaker):
+    def __init__(self):
+        super(DataMaker, self).__init__()
+
+        self.bookmarks = {}
+        self.rating_gradient = {
+            '1': 1.0,
+            '2': 1.5,
+            '3': 0.5,
+            '4': 1.0,
+        }
+
+    def load(self, ncode_list):
+        self.bookmarks = load_bookmark_rating_csv()
+        ncode_list = [ncode for ncode in ncode_list if int(self._get_bookmark_category(ncode)) <= 4]
+        super(BookmarkDataMaker, self).load(ncode_list)
+
+    def _get_bookmark_category(self, ncode):
+        bookmark = [bookmark for bookmark in self.bookmarks if bookmark['ncode'] == ncode][0]
+        if bookmark:
+            return bookmark['category']
+        else:
+            return -1
+
+    def _get_rating(self, ncode):
+        bookmark = [bookmark for bookmark in self.bookmarks if bookmark['ncode'] == ncode][0]
+
+        if bookmark:
+            rating = (float)(bookmark['rating'])
+            gradient = (float)(self.rating_gradient.get(bookmark['category'], 0.0))
+            return rating * gradient
+        else:
+            return 0.0
+
+    def _create_file_name(self):
         return 'bookmark_train_data.csv'
+
+
+class RankingDataMaker(DataMaker):
+    def __init__(self):
+        super(DataMaker, self).__init__()
+
+    def _create_file_name(self):
+        return 'ranking_train_data.csv'
 
 
 class UniqueCounter:

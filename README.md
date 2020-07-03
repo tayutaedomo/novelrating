@@ -57,3 +57,8 @@ $ python scripts/scraping/novel_page_bulk.py ranking
 $ python scripts/scraping/novel_info.py bookmark
 ```
 
+8. Create page summary files
+```
+$ python scripts/model/novel_page_summary.py (all|bookmark|ranking)
+```
+

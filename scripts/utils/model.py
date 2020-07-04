@@ -181,8 +181,8 @@ class BookmarkDataMaker(DataMaker):
 
     def load(self, ncode_list):
         self.bookmarks = load_bookmark_rating_csv()
-        ncode_list = [ncode for ncode in ncode_list if int(self._get_bookmark_category(ncode)) <= 4]
-        super(BookmarkDataMaker, self).load(ncode_list)
+        filtered_list = [ncode for ncode in ncode_list if int(self._get_bookmark_category(ncode)) < 4]
+        super(BookmarkDataMaker, self).load(filtered_list)
 
     def _get_bookmark_category(self, ncode):
         bookmark = [bookmark for bookmark in self.bookmarks if bookmark['ncode'] == ncode][0]

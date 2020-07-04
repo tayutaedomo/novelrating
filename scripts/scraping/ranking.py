@@ -83,7 +83,8 @@ if __name__ == '__main__':
 
     else:
         ranking_paths = [
-            'genrelist/type/weekly_101',
+            #'genrelist/type/weekly_101',
+            'isekailist/type/monthly_2'
         ]
 
     cache = create_cache()

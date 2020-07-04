@@ -2,7 +2,7 @@ import os
 import datetime
 import csv
 
-from .novel import load_bookmark_rating_csv
+from .novel import load_bookmark_rating_csv, load_ranking_csv
 from .novel import NovelInfo, NovelPages
 
 ROOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
@@ -88,8 +88,10 @@ class DataMaker:
             row['title'] = novel_info.info['title']
             row['category'] = novel_info.info['category']
             row['bookmark_cat'] = self._get_bookmark_category(ncode)
-            row['created_at'] = self._exchange_to_datetime(novel_info.info['created_at']).timestamp()
-            row['updated_at'] = self._exchange_to_datetime(novel_info.info['updated_at']).timestamp()
+            row['created_at'] = self._exchange_to_datetime(
+                novel_info.info['created_at']).timestamp()
+            row['updated_at'] = self._exchange_to_datetime(
+                novel_info.info['updated_at']).timestamp()
 
             self.extend_summary_data(novel_pages.summary['sum'], row, 'sum')
 
@@ -136,10 +138,10 @@ class DataMaker:
         return dest
 
     def _get_bookmark_category(self, ncode):
-        return -1   # Return dummy data
+        return -1  # Return dummy data
 
     def _get_rating(self, ncode):
-        return -1   # Return dummy data
+        return -1  # Return dummy data
 
     def save(self):
         dest_path = self._create_dest_path()
@@ -181,7 +183,8 @@ class BookmarkDataMaker(DataMaker):
 
     def load(self, ncode_list):
         self.bookmarks = load_bookmark_rating_csv()
-        filtered_list = [ncode for ncode in ncode_list if int(self._get_bookmark_category(ncode)) < 4]
+        filtered_list = [ncode for ncode in ncode_list
+                         if int(self._get_bookmark_category(ncode)) < 4]
         super(BookmarkDataMaker, self).load(filtered_list)
 
     def _get_bookmark_category(self, ncode):
@@ -208,6 +211,17 @@ class BookmarkDataMaker(DataMaker):
 class RankingDataMaker(DataMaker):
     def __init__(self):
         super(RankingDataMaker, self).__init__()
+
+    def load(self, ncode_list):
+        filtered_list = self._filter_ncode_list(ncode_list)
+        super(RankingDataMaker, self).load(filtered_list)
+
+    def _filter_ncode_list(self, ncode_list):
+        bookmark_ncode_list = self._get_bookmark_ncode_list()
+        return [ncode for ncode in ncode_list if ncode not in bookmark_ncode_list]
+
+    def _get_bookmark_ncode_list(self):
+        return [bookmark['ncode'] for bookmark in load_bookmark_rating_csv()]
 
     def _create_file_name(self):
         return 'ranking_test_data.csv'
@@ -239,4 +253,3 @@ class UniqueCounter:
             return sorted(self.data.items())
         else:
             return sorted(self.data.items(), key=lambda x: x[1], reverse=True)
-

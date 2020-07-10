@@ -93,26 +93,30 @@ class DataMaker:
             row['updated_at'] = self._exchange_to_datetime(
                 novel_info.info['updated_at']).timestamp()
 
-            self.extend_summary_data(novel_pages.summary['sum'], row, 'sum')
+            self._extend_summary_data(novel_pages.summary['sum'], row, 'sum')
 
             avg_data = novel_pages.create_average(novel_pages.summary)
-            self.extend_summary_data(avg_data, row, 'avg')
+            self._extend_summary_data(avg_data, row, 'avg')
 
             for keyword in self.unique_keywords.get_unique_keys():
-                row[keyword] = 0
+                key = self._create_keyword_column_name(keyword)
+                row[key] = 0
 
             for keyword in self._extract_keywors(novel_info):
                 if keyword in row:
+                    key = self._create_keyword_column_name(keyword)
                     row[keyword] = 1
 
             for word_class in self.unique_word_classes.get_unique_keys():
-                row[word_class] = 0
+                key = self._create_word_class_column_name(word_class)
+                row[key] = 0
 
             word_classes = novel_pages.summary['sum']['word_classes']
 
             for word_class in word_classes.keys():
                 if word_class in row:
-                    row[word_class] += word_classes[word_class]
+                    key = self._create_word_class_column_name(word_class)
+                    row[key] += word_classes[word_class]
 
             row['rating'] = self._get_rating(ncode)
 
@@ -123,7 +127,7 @@ class DataMaker:
     def _exchange_to_datetime(self, str_date):
         return datetime.datetime.strptime(str_date, '%Y年 %m月%d日 %H時%M分')
 
-    def extend_summary_data(self, src, dest, prefix):
+    def _extend_summary_data(self, src, dest, prefix):
         keys = [
             'char_count',
             'new_line_count',
@@ -136,6 +140,12 @@ class DataMaker:
             dest[new_key] = src[key]
 
         return dest
+
+    def _create_keyword_column_name(self, keyword):
+        return 'kw_' + keyword
+
+    def _create_word_class_column_name(self, word_class):
+        return 'wc_' + word_class
 
     def _get_bookmark_category(self, ncode):
         return -1  # Return dummy data

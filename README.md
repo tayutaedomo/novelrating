@@ -37,12 +37,12 @@ $ python scripts/scraping/novel_pages.py bookmark
 
 5: Create novel pages summary
 ```
-$ python scripts/model/novel_page_summary.py bookmark
+$ python scripts/converting/novel_page_summary.py bookmark
 ```
 
 6: Create train data
 ```
-$ python scripts/model/bookmark_data_create.py
+$ python scripts/converting/bookmark_data_create.py
 ```
 
 ### Create Test Data
@@ -67,11 +67,11 @@ $ python scripts/scraping/novel_pages.py ranking
 
 4: Create novel pages summary
 ```
-$ python scripts/model/novel_page_summary.py ranking
+$ python scripts/converting/novel_page_summary.py ranking
 ```
 
 5: Create test data
 ```
-$ python scripts/model/ranking_data_create.py
+$ python scripts/converting/ranking_data_create.py
 ```
 

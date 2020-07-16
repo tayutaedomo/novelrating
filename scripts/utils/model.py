@@ -103,8 +103,8 @@ class DataMaker:
                 row[key] = 0
 
             for keyword in self._extract_keywors(novel_info):
-                if keyword in row:
-                    key = self._create_keyword_column_name(keyword)
+                key = self._create_keyword_column_name(keyword)
+                if key in row:
                     row[key] = 1
 
             for word_class in self.unique_word_classes.get_unique_keys():

@@ -1,5 +1,10 @@
 chromedriver-binary==83.0.4103.39.0
 selenium==3.141.0
 mecab-python3==0.996.5
-
+jupyter==1.0.0
+pandas==1.0.5
+matplotlib==3.2.2
+scikit-learn==0.23.1
+seaborn==0.10.1
+xgboost==1.1.1
 

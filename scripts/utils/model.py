@@ -105,7 +105,7 @@ class DataMaker:
             for keyword in self._extract_keywors(novel_info):
                 if keyword in row:
                     key = self._create_keyword_column_name(keyword)
-                    row[keyword] = 1
+                    row[key] = 1
 
             for word_class in self.unique_word_classes.get_unique_keys():
                 key = self._create_word_class_column_name(word_class)
@@ -114,9 +114,8 @@ class DataMaker:
             word_classes = novel_pages.summary['sum']['word_classes']
 
             for word_class in word_classes.keys():
-                if word_class in row:
-                    key = self._create_word_class_column_name(word_class)
-                    row[key] += word_classes[word_class]
+                key = self._create_word_class_column_name(word_class)
+                row[key] += word_classes.get(word_class)
 
             row['rating'] = self._get_rating(ncode)
 

@@ -63,7 +63,7 @@ class DataMaker:
         return keyword_list
 
     def _create_unique_word_classes(self):
-        self.unique_word_classes = UniqueCounter()
+        self.unique_word_classes = WordClassCounter()
 
         for inputs in self.inputs_list:
             novel_pages = inputs['novel_pages']
@@ -144,7 +144,8 @@ class DataMaker:
         return 'kw_' + keyword
 
     def _create_word_class_column_name(self, word_class):
-        return 'wc_' + word_class
+        key = extract_word_class_key(word_class)
+        return 'wc_' + key
 
     def _get_bookmark_category(self, ncode):
         return -1  # Return dummy data
@@ -262,3 +263,39 @@ class UniqueCounter:
             return sorted(self.data.items())
         else:
             return sorted(self.data.items(), key=lambda x: x[1], reverse=True)
+
+
+def extract_word_class_key(key):
+    return key.split('-')[0]
+
+
+class WordClassCounter(UniqueCounter):
+    WORD_CLASSES = [
+        'その他',
+        'フィラー',
+        '副詞',
+        '助動詞',
+        '助詞',
+        '動詞',
+        '名詞',
+        '形容詞',
+        '感動詞',
+        '接続詞',
+        '接頭詞',
+        '記号',
+        '連体詞',
+    ]
+
+    def __init__(self, limit=100):
+        super(WordClassCounter, self).__init__(limit)
+
+    def set(self, key, count):
+        main_class = extract_word_class_key(key)
+
+        try:
+            print(main_class)
+            WordClassCounter.WORD_CLASSES.index(main_class)
+            super(WordClassCounter, self).set(main_class, count)
+        except ValueError:
+            print('Unsupported word class is found.', key)
+

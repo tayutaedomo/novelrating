@@ -96,15 +96,6 @@ class DataMaker:
             for key, value in char_avg_summary.get_rate_items():
                 row[key] = value
 
-            for keyword in self.unique_keywords.get_unique_keys():
-                key = self._create_keyword_column_name(keyword)
-                row[key] = 0
-
-            for keyword in self._extract_keywors(novel_info):
-                key = self._create_keyword_column_name(keyword)
-                if key in row:
-                    row[key] = 1
-
             word_class_summary = WordClassSummary(
                 novel_pages.summary['sum']['word_classes'])
 
@@ -113,6 +104,15 @@ class DataMaker:
 
             for key, value in word_class_summary.get_rate_items():
                 row[key] = value
+
+            for keyword in self.unique_keywords.get_unique_keys():
+                key = self._create_keyword_column_name(keyword)
+                row[key] = 0
+
+            for keyword in self._extract_keywors(novel_info):
+                key = self._create_keyword_column_name(keyword)
+                if key in row:
+                    row[key] = 1
 
             row['rating'] = self._get_rating(ncode)
 
@@ -249,7 +249,6 @@ class CharSummary:
         'char_count',
         'new_line_count',
         'talk_char_count',
-        'word_count',
     ]
 
     def __init__(self, summary, suffix):

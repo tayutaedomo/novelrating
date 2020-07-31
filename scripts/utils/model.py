@@ -79,10 +79,22 @@ class DataMaker:
             row['updated_at'] = self._exchange_to_datetime(
                 novel_info.info['updated_at']).timestamp()
 
-            self._extend_summary_data(novel_pages.summary['sum'], row, 'sum')
+            char_sum_summary = CharSummary(novel_pages.summary['sum'], 'sum')
+
+            for key, value in char_sum_summary.get_items():
+                row[key] = value
+
+            for key, value in char_sum_summary.get_rate_items():
+                row[key] = value
 
             avg_data = novel_pages.create_average(novel_pages.summary)
-            self._extend_summary_data(avg_data, row, 'avg')
+            char_avg_summary = CharSummary(avg_data, 'avg')
+
+            for key, value in char_avg_summary.get_items():
+                row[key] = value
+
+            for key, value in char_avg_summary.get_rate_items():
+                row[key] = value
 
             for keyword in self.unique_keywords.get_unique_keys():
                 key = self._create_keyword_column_name(keyword)
@@ -110,20 +122,6 @@ class DataMaker:
 
     def _exchange_to_datetime(self, str_date):
         return datetime.datetime.strptime(str_date, '%Y年 %m月%d日 %H時%M分')
-
-    def _extend_summary_data(self, src, dest, prefix):
-        keys = [
-            'char_count',
-            'new_line_count',
-            'talk_char_count',
-            'word_count',
-        ]
-
-        for key in keys:
-            new_key = '{}_{}'.format(prefix, key)
-            dest[new_key] = src[key]
-
-        return dest
 
     def _create_keyword_column_name(self, keyword):
         return 'kw_' + keyword
@@ -244,6 +242,39 @@ class UniqueCounter:
             return sorted(self.data.items())
         else:
             return sorted(self.data.items(), key=lambda x: x[1], reverse=True)
+
+
+class CharSummary:
+    COLUMNS = [
+        'char_count',
+        'new_line_count',
+        'talk_char_count',
+        'word_count',
+    ]
+
+    def __init__(self, summary, suffix):
+        self.summary = summary
+        self.suffix = suffix
+
+    def get_items(self):
+        for key in CharSummary.COLUMNS:
+            value = self.summary[key]
+            key = self._create_column_name(key)
+            yield key, value
+
+    def get_rate_items(self):
+        for key in ['new_line_count', 'talk_char_count']:
+            value = self.summary[key] / self.summary['char_count']
+            key = self._create_column_name(key, 'rate')
+            yield key, value
+
+    def _create_column_name(self, name, label=None):
+        suffix = self.suffix
+
+        if label:
+            suffix = '{}_{}'.format(label, suffix)
+
+        return '{}_{}'.format(name, suffix)
 
 
 class WordClassSummary:

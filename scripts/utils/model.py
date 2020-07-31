@@ -13,7 +13,6 @@ class DataMaker:
         self.ncode_list = []
         self.inputs_list = []
         self.unique_keywords = UniqueCounter()
-        self.unique_word_classes = UniqueCounter()
         self.rows = []
 
     def load(self, ncode_list):
@@ -21,7 +20,6 @@ class DataMaker:
 
         self._create_novel_inputs()
         self._create_unique_keywords()
-        self._create_unique_word_classes()
 
     def _create_novel_inputs(self):
         self.inputs_list = []
@@ -62,18 +60,6 @@ class DataMaker:
 
         return keyword_list
 
-    def _create_unique_word_classes(self):
-        self.unique_word_classes = UniqueCounter()
-
-        for inputs in self.inputs_list:
-            novel_pages = inputs['novel_pages']
-            sum_word_classes = novel_pages.summary['sum']['word_classes']
-
-            for key, value in sum_word_classes.items():
-                self.unique_word_classes.set(key, value)
-
-        return self.unique_word_classes.get_unique_keys()
-
     def make(self):
         for i, inputs in enumerate(self.inputs_list):
             row = {}
@@ -93,10 +79,31 @@ class DataMaker:
             row['updated_at'] = self._exchange_to_datetime(
                 novel_info.info['updated_at']).timestamp()
 
-            self._extend_summary_data(novel_pages.summary['sum'], row, 'sum')
+            char_sum_summary = CharSummary(novel_pages.summary['sum'], 'sum')
+
+            for key, value in char_sum_summary.get_items():
+                row[key] = value
+
+            for key, value in char_sum_summary.get_rate_items():
+                row[key] = value
 
             avg_data = novel_pages.create_average(novel_pages.summary)
-            self._extend_summary_data(avg_data, row, 'avg')
+            char_avg_summary = CharSummary(avg_data, 'avg')
+
+            for key, value in char_avg_summary.get_items():
+                row[key] = value
+
+            for key, value in char_avg_summary.get_rate_items():
+                row[key] = value
+
+            word_class_summary = WordClassSummary(
+                novel_pages.summary['sum']['word_classes'])
+
+            for key, value in word_class_summary.get_sum_items():
+                row[key] = value
+
+            for key, value in word_class_summary.get_rate_items():
+                row[key] = value
 
             for keyword in self.unique_keywords.get_unique_keys():
                 key = self._create_keyword_column_name(keyword)
@@ -107,16 +114,6 @@ class DataMaker:
                 if key in row:
                     row[key] = 1
 
-            for word_class in self.unique_word_classes.get_unique_keys():
-                key = self._create_word_class_column_name(word_class)
-                row[key] = 0
-
-            word_classes = novel_pages.summary['sum']['word_classes']
-
-            for word_class in word_classes.keys():
-                key = self._create_word_class_column_name(word_class)
-                row[key] += word_classes.get(word_class)
-
             row['rating'] = self._get_rating(ncode)
 
             self.rows.append(row)
@@ -126,25 +123,8 @@ class DataMaker:
     def _exchange_to_datetime(self, str_date):
         return datetime.datetime.strptime(str_date, '%Y年 %m月%d日 %H時%M分')
 
-    def _extend_summary_data(self, src, dest, prefix):
-        keys = [
-            'char_count',
-            'new_line_count',
-            'talk_char_count',
-            'word_count',
-        ]
-
-        for key in keys:
-            new_key = '{}_{}'.format(prefix, key)
-            dest[new_key] = src[key]
-
-        return dest
-
     def _create_keyword_column_name(self, keyword):
         return 'kw_' + keyword
-
-    def _create_word_class_column_name(self, word_class):
-        return 'wc_' + word_class
 
     def _get_bookmark_category(self, ncode):
         return -1  # Return dummy data
@@ -262,3 +242,84 @@ class UniqueCounter:
             return sorted(self.data.items())
         else:
             return sorted(self.data.items(), key=lambda x: x[1], reverse=True)
+
+
+class CharSummary:
+    COLUMNS = [
+        'char_count',
+        'new_line_count',
+        'talk_char_count',
+    ]
+
+    def __init__(self, summary, suffix):
+        self.summary = summary
+        self.suffix = suffix
+
+    def get_items(self):
+        for key in CharSummary.COLUMNS:
+            value = self.summary[key]
+            key = self._create_column_name(key)
+            yield key, value
+
+    def get_rate_items(self):
+        for key in ['new_line_count', 'talk_char_count']:
+            value = self.summary[key] / self.summary['char_count']
+            key = self._create_column_name(key, 'rate')
+            yield key, value
+
+    def _create_column_name(self, name, label=None):
+        suffix = self.suffix
+
+        if label:
+            suffix = '{}_{}'.format(label, suffix)
+
+        return '{}_{}'.format(name, suffix)
+
+
+class WordClassSummary:
+    WORD_CLASSES = [
+        'その他',
+        'フィラー',
+        '副詞',
+        '助動詞',
+        '助詞',
+        '動詞',
+        '名詞',
+        '形容詞',
+        '感動詞',
+        '接続詞',
+        '接頭詞',
+        '記号',
+        '連体詞',
+    ]
+
+    def __init__(self, word_classes):
+        self.input_wc = word_classes
+
+        self.summary = dict(zip(WordClassSummary.WORD_CLASSES,
+                                [0] * len(WordClassSummary.WORD_CLASSES)))
+
+        for key, value in word_classes.items():
+            for word_class in WordClassSummary.WORD_CLASSES:
+                if key.find(word_class) != -1:
+                    self.summary[word_class] += value
+
+        self.total = sum(self.summary.values())
+
+    def get_sum_items(self):
+        for key, value in self.summary.items():
+            key = self._create_column_name(key, 'sum')
+            yield key, value
+
+    def get_rate_items(self):
+        for key, value in self.summary.items():
+            key = self._create_column_name(key, 'rate')
+
+            if self.total > 0:
+                value = value / self.total
+
+            yield key, value
+
+    def _create_column_name(self, word_class, prefix):
+        return 'wc_{}_{}'.format(prefix, word_class)
+

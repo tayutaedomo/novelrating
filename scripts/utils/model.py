@@ -13,7 +13,6 @@ class DataMaker:
         self.ncode_list = []
         self.inputs_list = []
         self.unique_keywords = UniqueCounter()
-        self.unique_word_classes = UniqueCounter()
         self.rows = []
 
     def load(self, ncode_list):
@@ -21,7 +20,6 @@ class DataMaker:
 
         self._create_novel_inputs()
         self._create_unique_keywords()
-        self._create_unique_word_classes()
 
     def _create_novel_inputs(self):
         self.inputs_list = []
@@ -62,18 +60,6 @@ class DataMaker:
 
         return keyword_list
 
-    def _create_unique_word_classes(self):
-        self.unique_word_classes = WordClassCounter()
-
-        for inputs in self.inputs_list:
-            novel_pages = inputs['novel_pages']
-            sum_word_classes = novel_pages.summary['sum']['word_classes']
-
-            for key, value in sum_word_classes.items():
-                self.unique_word_classes.set(key, value)
-
-        return self.unique_word_classes.get_unique_keys()
-
     def make(self):
         for i, inputs in enumerate(self.inputs_list):
             row = {}
@@ -107,15 +93,14 @@ class DataMaker:
                 if key in row:
                     row[key] = 1
 
-            for word_class in self.unique_word_classes.get_unique_keys():
-                key = self._create_word_class_column_name(word_class)
-                row[key] = 0
+            word_class_summary = WordClassSummary(
+                novel_pages.summary['sum']['word_classes'])
 
-            word_classes = novel_pages.summary['sum']['word_classes']
+            for key, value in word_class_summary.get_sum_items():
+                row[key] = value
 
-            for word_class in word_classes.keys():
-                key = self._create_word_class_column_name(word_class)
-                row[key] += word_classes.get(word_class)
+            for key, value in word_class_summary.get_rate_items():
+                row[key] = value
 
             row['rating'] = self._get_rating(ncode)
 
@@ -142,10 +127,6 @@ class DataMaker:
 
     def _create_keyword_column_name(self, keyword):
         return 'kw_' + keyword
-
-    def _create_word_class_column_name(self, word_class):
-        key = extract_word_class_key(word_class)
-        return 'wc_' + key
 
     def _get_bookmark_category(self, ncode):
         return -1  # Return dummy data
@@ -265,11 +246,7 @@ class UniqueCounter:
             return sorted(self.data.items(), key=lambda x: x[1], reverse=True)
 
 
-def extract_word_class_key(key):
-    return key.split('-')[0]
-
-
-class WordClassCounter(UniqueCounter):
+class WordClassSummary:
     WORD_CLASSES = [
         'その他',
         'フィラー',
@@ -286,16 +263,33 @@ class WordClassCounter(UniqueCounter):
         '連体詞',
     ]
 
-    def __init__(self, limit=100):
-        super(WordClassCounter, self).__init__(limit)
+    def __init__(self, word_classes):
+        self.input_wc = word_classes
 
-    def set(self, key, count):
-        main_class = extract_word_class_key(key)
+        self.summary = dict(zip(WordClassSummary.WORD_CLASSES,
+                                [0] * len(WordClassSummary.WORD_CLASSES)))
 
-        try:
-            print(main_class)
-            WordClassCounter.WORD_CLASSES.index(main_class)
-            super(WordClassCounter, self).set(main_class, count)
-        except ValueError:
-            print('Unsupported word class is found.', key)
+        for key, value in word_classes.items():
+            for word_class in WordClassSummary.WORD_CLASSES:
+                if key.find(word_class) != -1:
+                    self.summary[word_class] += value
+
+        self.total = sum(self.summary.values())
+
+    def get_sum_items(self):
+        for key, value in self.summary.items():
+            key = self._create_column_name(key, 'sum')
+            yield key, value
+
+    def get_rate_items(self):
+        for key, value in self.summary.items():
+            key = self._create_column_name(key, 'rate')
+
+            if self.total > 0:
+                value = value / self.total
+
+            yield key, value
+
+    def _create_column_name(self, word_class, prefix):
+        return 'wc_{}_{}'.format(prefix, word_class)
 

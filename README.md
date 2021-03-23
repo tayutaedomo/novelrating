@@ -1,9 +1,9 @@
-# novelfind
+# novelrating
 
 ## Setup
 ```
-$ git clone git@github.com:tayutaedomo/novelfind.git 
-$ cd novelfind
+$ git clone git@github.com:tayutaedomo/novelrating.git 
+$ cd novelrating
 $ python3 -m venv venv 
 $ source venv/bin/activate
 ```

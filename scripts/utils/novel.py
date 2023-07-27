@@ -17,7 +17,7 @@ RANKING_CSV_PATH = os.path.join(ROOT_PATH, 'data', 'ranking.csv')
 
 
 def login_narou(driver, email, password):
-    url = 'https://ssl.syosetu.com/login/input/'
+    url = 'https://syosetu.com/login/input/'
     print(datetime.datetime.now().isoformat(), 'GET:', url)
 
     driver.get(url)
